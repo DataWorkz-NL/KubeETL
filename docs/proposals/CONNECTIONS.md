@@ -21,7 +21,7 @@ status:
   
 ```
 
-The `protocol` field can be used for a dynamic determination of what source is being connected to. The `Connection` contains all relevant information to achieve a `Connection`. It is assumed the `Task` utilising the `Connection` is able to use that information to achieve a connection. The `status` field can be used to track usage of the `Connection` and even to achieve locking functionality if that is desired at some point.
+The `protocol` field can be used for a dynamic determination of what source is being connected to. This can be used in a Task to determine e.g. what image should be used and what environment variables should be available. The `Connection` contains all relevant information to achieve a `Connection`. It is assumed the `Task` utilising the `Connection` is able to use that information to achieve a connection. The `status` field can be used to track usage of the `Connection` and even to achieve locking functionality if that is desired at some point.
 
 # Security
 
