@@ -20,3 +20,4 @@ KubeETL aims to simplify the Data Engineering lifecycle. In Data Engineering the
 - **High reusability:** workflows & tasks within those workflows should be reusable for other workflows. KubeETL should also make it easy to share intermediate data stages to create reusable data sources.
 - **Make metadata accessible:** KubeETL should provide functionality to capture the metadata needed to cover common data quality measurement & lineage tracking requirements.
 - **Reuse existing tools where possible:** the goal is to not reinvent the wheel, but build on existing open source tools & components.
+- **Modular:**  one does not have to use every feature KubeETL offers. Features should be optional and composable where possible.
