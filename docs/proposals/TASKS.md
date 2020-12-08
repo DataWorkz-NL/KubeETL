@@ -6,7 +6,7 @@ A proposal for the `Task` kind could be the following:
 
 ```yml
 apiversion: t.b.d.
-kind: DataSource
+kind: Task
 metadata:
   name: TransformTransactionsToFact
 spec:
@@ -33,7 +33,7 @@ Alternatively `DataSources` can also be passed to the `Task` by defining a set o
 
 ```yml
 apiversion: t.b.d.
-kind: DataSource
+kind: Task
 metadata:
   name: TransformTransactionsToFact
 spec:
