@@ -25,6 +25,8 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	etlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -36,6 +38,7 @@ var (
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
+	_ = etlv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
