@@ -1,0 +1,93 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: connectiontypes.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: ConnectionType
+    listKind: ConnectionTypeList
+    plural: connectiontypes
+    singular: connectiontype
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: ConnectionType defines the structure, validation and behavior of
+        a connection
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ConnectionTypeSpec defines the desired state of ConnectionType
+          properties:
+            allowExtraFields:
+              description: Allow extra fields to be submitted that do not match any
+                CredentialField
+              type: boolean
+            fields:
+              description: CredentialFields used in this ConnectionTypeSpec. Used
+                to validate input.
+              items:
+                properties:
+                  envName:
+                    description: EnvKey is what the environment variable for this
+                      field will be called
+                    type: string
+                  name:
+                    description: Name for this CredentialField. Used as keys in the
+                      Credentials-map
+                    type: string
+                  required:
+                    description: Whether or not this field must be filled
+                    type: boolean
+                  validation:
+                    description: Optional methods of validating the field's value
+                    properties:
+                      maxLength:
+                        format: int32
+                        type: integer
+                      minLength:
+                        format: int32
+                        type: integer
+                      regex:
+                        description: A regex pattern, must conform to RE2 syntax
+                        type: string
+                    type: object
+                required:
+                - envName
+                - name
+                - required
+                type: object
+              type: array
+            name:
+              type: string
+          required:
+          - name
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

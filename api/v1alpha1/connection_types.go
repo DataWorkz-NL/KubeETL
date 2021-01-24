@@ -30,21 +30,80 @@ type ConnectionSpec struct {
 
 	// All required information to achieve the connection is stored in the credentials
 	//+required
-	Credentials *Credentials `json:"credentials"`
+	Credentials Credentials `json:"credentials"`
 }
 
-// Credentials store all relevant information to achieve a connection
-type Credentials struct {
-	// The URL to connect to
-	//+optional
-	URL *Value `json:"url,omitempty"`
-	// Holds the username required to achieve a connection
-	//+optional
-	Username *Value `json:"username,omitempty"`
-	// Holds the password required to achieve a connection
-	//+optional
-	Password *Value `json:"password,omitempty"`
+type Credentials map[string]Value
+
+// +kubebuilder:object:Root=true
+
+// ConnectionType defines the structure, validation and behavior of a connection
+type ConnectionType struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	//+required
+	Spec ConnectionTypeSpec `json:"spec,omitempty"`
 }
+
+// +kubebuilder:object:root=true
+
+// ConnectionList contains a list of Connection
+type ConnectionTypeList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []ConnectionType `json:"items"`
+}
+
+// ConnectionTypeSpec defines the desired state of ConnectionType
+type ConnectionTypeSpec struct {
+	//+required
+	Name string `json:"name"`
+
+	// CredentialFields used in this ConnectionTypeSpec. Used to validate input.
+	//+optional
+	Fields []CredentialFieldSpec `json:"fields,omitempty"`
+
+	// Allow extra fields to be submitted that do not match any CredentialField
+	//+optional
+	AllowExtraFields bool `json:"allowExtraFields,omitempty"`
+}
+
+type CredentialFieldSpec struct {
+	// Name for this CredentialField. Used as keys in the Credentials-map
+	//+required
+	Name string `json:"name"`
+
+	// EnvKey is what the environment variable for this field will be called
+	//+required
+	EnvKey string `json:"envName"`
+
+	// Whether or not this field must be filled
+	//+required
+	Required bool `json:"required"`
+
+	// Optional methods of validating the field's value
+	//+optional
+	Validation *Validation `json:"validation,omitempty"`
+}
+
+// Contains optional properties used in validating CredentialFields
+type Validation struct {
+	// At least one must be selected
+
+	//+optional
+	MinLength *int32 `json:"minLength,omitempty"`
+
+	//+optional
+	MaxLength *int32 `json:"maxLength,omitempty"`
+
+	// A regex pattern, must conform to RE2 syntax
+	//+optional
+	Regex *ValidationRegex `json:"regex,omitempty"`
+}
+
+// ValidationRegex contains a regex pattern conforming to RE2 syntax
+type ValidationRegex string
 
 // Value contains either a direct value or a value from a source
 type Value struct {
