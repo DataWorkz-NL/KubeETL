@@ -1,3 +1,7 @@
 domain: dataworkz.nl
 repo: github.com/dataworkz/kubeetl
+resources:
+- group: etl
+  kind: Connection
+  version: v1alpha1
 version: "2"

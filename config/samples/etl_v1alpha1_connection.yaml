@@ -1,0 +1,7 @@
+apiVersion: etl.dataworkz.nl/v1alpha1
+kind: Connection
+metadata:
+  name: connection-sample
+spec:
+  # Add fields here
+  foo: bar
