@@ -35,7 +35,7 @@ type ConnectionSpec struct {
 
 type Credentials map[string]Value
 
-// +kubebuilder:object:Root=true
+// +kubebuilder:object:root=true
 
 // ConnectionType defines the structure, validation and behavior of a connection
 type ConnectionType struct {

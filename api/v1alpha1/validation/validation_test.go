@@ -46,7 +46,7 @@ var _ = Describe("ValidateValue", func() {
 		It("should return one error", func() {
 			errs := ValidateValue(longString, field.NewPath("test"), val)
 			Expect(errs).To(Not(BeNil()))
-			Expect(errs.ToAggregate().Error()).To(Equal("test: Invalid value: \"12\": Value above MaxLength"))
+			Expect(errs.ToAggregate().Error()).To(Equal("test: Invalid value: \"1234567890\": Value above MaxLength"))
 		})
 	})
 
@@ -54,7 +54,7 @@ var _ = Describe("ValidateValue", func() {
 		It("should return one error", func() {
 			errs := ValidateValue(invalidString, field.NewPath("test"), val)
 			Expect(errs).To(Not(BeNil()))
-			Expect(errs.ToAggregate().Error()).To(Equal("test: Value does not match regex pattern"))
+			Expect(errs.ToAggregate().Error()).To(Equal("test: Invalid value: \"123abc\": Value does not match regex pattern"))
 		})
 	})
 })
