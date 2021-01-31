@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	// "k8s.io/apimachinery/pkg/runtime"
-	fieldval "k8s.io/apimachinery/pkg/util/validation/field"
+	// fieldval "k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -52,37 +52,12 @@ func (hook *connectionValidatorHook) Handle(ctx context.Context, req admission.R
 	}
 
 	// Find ConnectionType
-	var conType ConnectionType
-	for _, ct := range typeList.Items {
-		if ct.Name == con.Spec.Type {
-			conType = ct
-		}
-	}
-
-	// Transform to fieldmap for quick lookup
-	fieldMap := make(map[string]*CredentialFieldSpec)
-	for _, field := range conType.Spec.Fields {
-		fieldMap[field.Name] = &field
-	}
-
-	// Perform field validation
-	var errList fieldval.ErrorList
-	for k, v := range con.Spec.Credentials {
-		field := fieldMap[k]
-		if field == nil {
-			if !conType.Spec.AllowExtraFields {
-				path := fieldval.NewPath("spec").Child("credentials").Child(k)
-				err := fieldval.Invalid(path, v, "ConnectionType does not allow extra fields")
-				errList = append(errList, err)
-			}
-
-			// Perform validation, not possible with reference valueFrom
-			if v.Value != "" {
-
-			}
-		}
-
-	}
+	// var conType ConnectionType
+	// for _, ct := range typeList.Items {
+	// 	if ct.Name == con.Spec.Type {
+	// 		conType = ct
+	// 	}
+	// }
 
 	return nil, nil
 	//TODO Check required types
