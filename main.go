@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	etlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
+	etlhooks "github.com/dataworkz/kubeetl/api/v1alpha1/webhooks"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -52,7 +53,6 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
-
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
@@ -65,6 +65,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	err = etlhooks.SetupValidatingConnectionWebhookWithManager(mgr)
+	if err != nil {
+		setupLog.Error(err, "unable to start webhook")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
