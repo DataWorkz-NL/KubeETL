@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package webhooks
 
 import (
 	"context"
@@ -32,7 +32,7 @@ import (
 	"github.com/dataworkz/kubeetl/listers"
 )
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-v1alpha1-connection,mutating=false,failurePolicy=fail,groups=etl.dataworkz.nl,resources=connections,versions=v1alpha1,name=vconnection.dataworkz.nl
+// +kubebuilder:webhook:verbs=create;update,path=/validate-v1alpha1-connection,mutating=false,failurePolicy=fail,groups=etl.dataworkz.nl,resources=connections,versions=v1alpha1,name=connection.dataworkz.nl
 
 // SetupValidatingConnectionWebhookWithManager registers the validating web hook for connections with the manager
 func SetupValidatingConnectionWebhookWithManager(mgr ctrl.Manager) error {

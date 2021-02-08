@@ -13,7 +13,7 @@ webhooks:
       namespace: system
       path: /validate-v1alpha1-connection
   failurePolicy: Fail
-  name: vconnection.dataworkz.nl
+  name: connection.dataworkz.nl
   rules:
   - apiGroups:
     - etl.dataworkz.nl
