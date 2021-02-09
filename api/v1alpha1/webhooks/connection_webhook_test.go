@@ -14,13 +14,19 @@ var _ = Describe("Connection validation webhook", func() {
 	ctx := context.Background()
 
 	It("Should return an error if no ConnectionType exists", func() {
+		creds := make(v1alpha1.Credentials)
+		creds["test_val"] = v1alpha1.Value{
+			Value: "foo",
+		}
+
 		con := &v1alpha1.Connection{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-connection",
 				Namespace: "default",
 			},
 			Spec: v1alpha1.ConnectionSpec{
-				Type: "unknown",
+				Type:        "unknown",
+				Credentials: creds,
 			},
 		}
 

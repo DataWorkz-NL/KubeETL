@@ -1,7 +1,6 @@
 package webhooks
 
 import (
-	"context"
 	"crypto/tls"
 	"io/ioutil"
 	"net"
@@ -12,13 +11,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/dataworkz/kubeetl/api/v1alpha1"
 )
@@ -33,15 +31,54 @@ func TestWebhooks(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
-
 	By("bootstrapping test environment")
+	caBundle, err := ioutil.ReadFile("certs/ca.pem")
+	Expect(err).ShouldNot(HaveOccurred())
+
+	failPolicy := admissionregistrationv1beta1.Fail
+	url := "https://127.0.0.1:8443/validate-v1alpha1-connection"
+
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("..", "..", "..", "config", "crd", "bases")},
-		// KubeAPIServerFlags: []string{"--admission-control=MutatingAdmissionWebhook"},
+		WebhookInstallOptions: envtest.WebhookInstallOptions{
+			ValidatingWebhooks: []client.Object{
+
+				&admissionregistrationv1beta1.ValidatingWebhookConfiguration{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "deployment-validation-webhook-config",
+					},
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "ValidatingWebhookConfiguration",
+						APIVersion: "admissionregistration.k8s.io/v1beta1",
+					},
+					Webhooks: []admissionregistrationv1beta1.ValidatingWebhook{
+						{
+							Name:          "connection.dataworkz.nl",
+							FailurePolicy: &failPolicy,
+							ClientConfig: admissionregistrationv1beta1.WebhookClientConfig{
+								CABundle: caBundle,
+								URL:      &url,
+							},
+							Rules: []admissionregistrationv1beta1.RuleWithOperations{
+								{
+									Operations: []admissionregistrationv1beta1.OperationType{
+										admissionregistrationv1beta1.Create,
+										admissionregistrationv1beta1.Update,
+									},
+									Rule: admissionregistrationv1beta1.Rule{
+										APIGroups:   []string{"etl.dataworkz.nl"},
+										APIVersions: []string{"v1alpha1"},
+										Resources:   []string{"connections"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
-	var err error
 	cfg, err = testEnv.Start()
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
@@ -91,41 +128,6 @@ var _ = BeforeSuite(func(done Done) {
 		return nil
 	}).Should(Succeed())
 
-	By("registering the webhooks with the API server")
-	ctx := context.Background()
-	caBundle, err := ioutil.ReadFile("certs/ca.pem")
-	Expect(err).ShouldNot(HaveOccurred())
-	wh := &admissionregistrationv1beta1.ValidatingWebhookConfiguration{}
-	wh.Name = "validating-connection-hook"
-	_, err = ctrl.CreateOrUpdate(ctx, k8sClient, wh, func() error {
-		failPolicy := admissionregistrationv1beta1.Fail
-		url := "https://127.0.0.1:8443/validate-v1alpha1-connection"
-		wh.Webhooks = []admissionregistrationv1beta1.ValidatingWebhook{
-			{
-				Name:          "connection.dataworkz.nl",
-				FailurePolicy: &failPolicy,
-				ClientConfig: admissionregistrationv1beta1.WebhookClientConfig{
-					CABundle: caBundle,
-					URL:      &url,
-				},
-				Rules: []admissionregistrationv1beta1.RuleWithOperations{
-					{
-						Operations: []admissionregistrationv1beta1.OperationType{
-							admissionregistrationv1beta1.Create,
-							admissionregistrationv1beta1.Update,
-						},
-						Rule: admissionregistrationv1beta1.Rule{
-							APIGroups:   []string{"etl.dataworkz.nl"},
-							APIVersions: []string{"v1alpha1"},
-							Resources:   []string{"connections"},
-						},
-					},
-				},
-			},
-		}
-		return nil
-	})
-	Expect(err).ShouldNot(HaveOccurred())
 	close(done)
 }, 60)
 
