@@ -48,7 +48,7 @@ type ConnectionType struct {
 
 // +kubebuilder:object:root=true
 
-// ConnectionList contains a list of Connection
+// ConnectionTypeList contains a list of ConnectionTypes
 type ConnectionTypeList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -150,5 +150,5 @@ type ConnectionList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&Connection{}, &ConnectionList{})
+	SchemeBuilder.Register(&Connection{}, &ConnectionList{}, &ConnectionType{}, &ConnectionTypeList{})
 }
