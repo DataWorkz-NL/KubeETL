@@ -31,6 +31,7 @@ var _ = Describe("Connection validation webhook", func() {
 		}
 
 		err := k8sClient.Create(ctx, con)
-		Expect(err).ShouldNot(HaveOccurred())
+		Expect(err).Should(HaveOccurred())
+		Expect(err.Error()).To(Equal("admission webhook \"connection.dataworkz.nl\" denied the request: Unknown ConnectionType: unknown"))
 	})
 })

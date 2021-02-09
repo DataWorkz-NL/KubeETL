@@ -71,6 +71,10 @@ func (hook *connectionValidatorHook) Handle(ctx context.Context, req admission.R
 		return admission.Errored(http.StatusBadRequest, fmt.Errorf("unable to list ConnectionType: %w", err))
 	}
 
+	if conType == nil {
+		return admission.Errored(http.StatusBadRequest, fmt.Errorf("Unknown ConnectionType: %v", con.Spec.Type))
+	}
+
 	errs := validation.ValidateConnection(con, *conType)
 	if errs != nil {
 		return admission.Errored(http.StatusBadRequest, errs.ToAggregate())
