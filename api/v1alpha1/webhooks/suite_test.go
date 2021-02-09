@@ -1,12 +1,8 @@
 package webhooks
 
 import (
-	"crypto/tls"
-	"io/ioutil"
-	"net"
 	"path/filepath"
 	"testing"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -32,11 +28,8 @@ func TestWebhooks(t *testing.T) {
 
 var _ = BeforeSuite(func(done Done) {
 	By("bootstrapping test environment")
-	caBundle, err := ioutil.ReadFile("certs/ca.pem")
-	Expect(err).ShouldNot(HaveOccurred())
-
 	failPolicy := admissionregistrationv1beta1.Fail
-	url := "https://127.0.0.1:8443/validate-v1alpha1-connection"
+	webhookPath := "/validate-v1alpha1-connection"
 
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("..", "..", "..", "config", "crd", "bases")},
@@ -56,8 +49,11 @@ var _ = BeforeSuite(func(done Done) {
 							Name:          "connection.dataworkz.nl",
 							FailurePolicy: &failPolicy,
 							ClientConfig: admissionregistrationv1beta1.WebhookClientConfig{
-								CABundle: caBundle,
-								URL:      &url,
+								Service: &admissionregistrationv1beta1.ServiceReference{
+									Name:      "deployment-validation-service",
+									Namespace: "default",
+									Path:      &webhookPath,
+								},
 							},
 							Rules: []admissionregistrationv1beta1.RuleWithOperations{
 								{
@@ -79,7 +75,7 @@ var _ = BeforeSuite(func(done Done) {
 		},
 	}
 
-	cfg, err = testEnv.Start()
+	cfg, err := testEnv.Start()
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
@@ -93,40 +89,21 @@ var _ = BeforeSuite(func(done Done) {
 	// +kubebuilder:scaffold:scheme
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme: scheme.Scheme,
+		Scheme:  scheme.Scheme,
+		Port:    testEnv.WebhookInstallOptions.LocalServingPort,
+		Host:    testEnv.WebhookInstallOptions.LocalServingHost,
+		CertDir: testEnv.WebhookInstallOptions.LocalServingCertDir,
 	})
 
 	By("running webhook server")
 	err = SetupValidatingConnectionWebhookWithManager(k8sManager)
 	Expect(err).NotTo(HaveOccurred())
 
-	webhookServer := k8sManager.GetWebhookServer()
-	certDir, err := filepath.Abs("./certs")
-	Expect(err).ToNot(HaveOccurred())
-
-	webhookServer.CertDir = certDir
-	webhookServer.CertName = "server.pem"
-	webhookServer.KeyName = "server-key.pem"
-	webhookServer.Host = "127.0.0.1"
-	webhookServer.Port = 8443
-
 	go func() {
 		defer GinkgoRecover()
 		err = k8sManager.Start(ctrl.SetupSignalHandler())
 		Expect(err).ToNot(HaveOccurred())
 	}()
-
-	d := &net.Dialer{Timeout: time.Second}
-	Eventually(func() error {
-		conn, err := tls.DialWithDialer(d, "tcp", "127.0.0.1:8443", &tls.Config{
-			InsecureSkipVerify: true,
-		})
-		if err != nil {
-			return err
-		}
-		conn.Close()
-		return nil
-	}).Should(Succeed())
 
 	close(done)
 }, 60)
