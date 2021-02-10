@@ -44,7 +44,7 @@ func ValidateValue(value string, path *field.Path, validation v1alpha1.Validatio
 }
 
 // ValidateConnection validates whether a v1alpha1.Connection adheres to the definition
-// it's type defined by a v1alpha1.ConnectionType
+// of its type defined by a v1alpha1.ConnectionType
 func ValidateConnection(con v1alpha1.Connection, conType v1alpha1.ConnectionType) field.ErrorList {
 	// Transform to fieldmap for quick lookup
 	fieldMap := make(map[string]*v1alpha1.CredentialFieldSpec)
