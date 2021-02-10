@@ -59,7 +59,7 @@ type connectionValidatorHook struct {
 }
 
 func (hook *connectionValidatorHook) Handle(ctx context.Context, req admission.Request) admission.Response {
-	log := logf.Log.WithName("webhooks").WithName("connection-validator-hook")
+	log := logf.Log.WithName("webhooks").WithName("validate-connection")
 	log.Info("Admission webhook request")
 	con := v1alpha1.Connection{}
 	if err := hook.decoder.Decode(req, &con); err != nil {
