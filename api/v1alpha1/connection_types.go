@@ -35,7 +35,7 @@ type ConnectionSpec struct {
 
 type Credentials map[string]Value
 
-// +kubebuilder:object:Root=true
+// +kubebuilder:object:root=true
 
 // ConnectionType defines the structure, validation and behavior of a connection
 type ConnectionType struct {
@@ -48,7 +48,7 @@ type ConnectionType struct {
 
 // +kubebuilder:object:root=true
 
-// ConnectionList contains a list of Connection
+// ConnectionTypeList contains a list of ConnectionTypes
 type ConnectionTypeList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -150,5 +150,5 @@ type ConnectionList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&Connection{}, &ConnectionList{})
+	SchemeBuilder.Register(&Connection{}, &ConnectionList{}, &ConnectionType{}, &ConnectionTypeList{})
 }
