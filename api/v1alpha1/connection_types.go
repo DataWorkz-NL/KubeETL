@@ -82,6 +82,13 @@ type CredentialFieldSpec struct {
 	//+required
 	Required bool `json:"required"`
 
+	// Whether or not this field is sensitive.
+	// If a field is sensitive, the only valid ValueSource
+	// is a SecretKeyRef. Plain text values and ConfigMapKeyRefs
+	// are not allowed.
+	//+optional
+	Sensitive bool `json:"sensitive"`
+
 	// Optional methods of validating the field's value
 	//+optional
 	Validation *Validation `json:"validation,omitempty"`

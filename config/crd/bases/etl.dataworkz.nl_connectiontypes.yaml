@@ -55,6 +55,11 @@ spec:
                   required:
                     description: Whether or not this field must be filled
                     type: boolean
+                  sensitive:
+                    description: Whether or not this field is sensitive. If a field
+                      is sensitive, the only valid ValueSource is a SecretKeyRef.
+                      Plain text values and ConfigMapKeyRefs are not allowed.
+                    type: boolean
                   validation:
                     description: Optional methods of validating the field's value
                     properties:
