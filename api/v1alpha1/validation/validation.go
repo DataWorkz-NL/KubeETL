@@ -49,7 +49,8 @@ func ValidateConnection(con v1alpha1.Connection, conType v1alpha1.ConnectionType
 	// Transform to fieldmap for quick lookup
 	fieldMap := make(map[string]*v1alpha1.CredentialFieldSpec)
 	for _, credField := range conType.Spec.Fields {
-		fieldMap[credField.Name] = &credField
+		c := credField
+		fieldMap[credField.Name] = &c
 	}
 
 	// Perform field validation
@@ -63,6 +64,15 @@ func ValidateConnection(con v1alpha1.Connection, conType v1alpha1.ConnectionType
 				errList = append(errList, err)
 			}
 			continue
+		}
+
+		if credField.Sensitive {
+			if v.Value != "" || v.ValueFrom.ConfigMapKeyRef != nil {
+				err := field.Invalid(path, v, "Field is sensitive, only SecretKeyRef is allowed")
+				errList = append(errList, err)
+
+				continue
+			}
 		}
 
 		// Perform validation, not possible with reference valueFrom

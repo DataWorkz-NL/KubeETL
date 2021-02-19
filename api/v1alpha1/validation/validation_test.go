@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
 
@@ -77,6 +78,10 @@ var _ = Describe("ValidateConnection", func() {
 						Name:       "username",
 						Validation: &val,
 					},
+					{
+						Name:      "password",
+						Sensitive: true,
+					},
 				},
 			},
 		}
@@ -89,6 +94,13 @@ var _ = Describe("ValidateConnection", func() {
 				Credentials: v1alpha1.Credentials{
 					"username": v1alpha1.Value{
 						Value: "123456",
+					},
+					"password": v1alpha1.Value{
+						ValueFrom: &v1alpha1.ValueSource{
+							SecretKeyRef: &v1.SecretKeySelector{
+								Key: "password",
+							},
+						},
 					},
 				},
 			},
@@ -106,6 +118,13 @@ var _ = Describe("ValidateConnection", func() {
 				Credentials: v1alpha1.Credentials{
 					"username": v1alpha1.Value{
 						Value: "123456",
+					},
+					"password": v1alpha1.Value{
+						ValueFrom: &v1alpha1.ValueSource{
+							SecretKeyRef: &v1.SecretKeySelector{
+								Key: "password",
+							},
+						},
 					},
 					"nonsense": v1alpha1.Value{
 						Value: "nonsense",
@@ -128,6 +147,13 @@ var _ = Describe("ValidateConnection", func() {
 					"username": v1alpha1.Value{
 						Value: "12",
 					},
+					"password": v1alpha1.Value{
+						ValueFrom: &v1alpha1.ValueSource{
+							SecretKeyRef: &v1.SecretKeySelector{
+								Key: "password",
+							},
+						},
+					},
 				},
 			},
 		}
@@ -135,6 +161,27 @@ var _ = Describe("ValidateConnection", func() {
 			errs := ValidateConnection(con, conType)
 			Expect(errs).To(Not(BeNil()))
 			Expect(errs.ToAggregate().Error()).To(Equal("spec.credentials.username: Invalid value: \"12\": Value below MinLength"))
+		})
+	})
+
+	Context("Validating a v1alpha1.Connection with a plain text secret", func() {
+		con := v1alpha1.Connection{
+			Spec: v1alpha1.ConnectionSpec{
+				Type: "Test",
+				Credentials: v1alpha1.Credentials{
+					"username": v1alpha1.Value{
+						Value: "123456",
+					},
+					"password": v1alpha1.Value{
+						Value: "secret",
+					},
+				},
+			},
+		}
+		It("should return one error indicating the field is sensitive", func() {
+			errs := ValidateConnection(con, conType)
+			Expect(errs).To(Not(BeNil()))
+			Expect(errs.ToAggregate().Error()).To(Equal("spec.credentials.password: Invalid value: v1alpha1.Value{Value:\"secret\", ValueFrom:(*v1alpha1.ValueSource)(nil)}: Field is sensitive, only SecretKeyRef is allowed"))
 		})
 	})
 })
