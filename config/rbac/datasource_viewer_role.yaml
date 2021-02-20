@@ -1,0 +1,20 @@
+# permissions for end users to view datasources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: datasource-viewer-role
+rules:
+- apiGroups:
+  - etl.dataworkz.nl
+  resources:
+  - datasources
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl
+  resources:
+  - datasources/status
+  verbs:
+  - get
