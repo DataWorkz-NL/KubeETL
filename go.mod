@@ -3,7 +3,7 @@ module github.com/dataworkz/kubeetl
 go 1.13
 
 require (
-	github.com/gophercloud/gophercloud v0.1.0 // indirect
+	github.com/argoproj/argo/v2 v2.12.9
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
 	k8s.io/api v0.20.2

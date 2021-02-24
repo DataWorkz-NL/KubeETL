@@ -28,6 +28,7 @@ import (
 
 	etlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	etlhooks "github.com/dataworkz/kubeetl/api/v1alpha1/webhooks"
+	"github.com/dataworkz/kubeetl/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -68,6 +69,15 @@ func main() {
 	err = etlhooks.SetupValidatingConnectionWebhookWithManager(mgr)
 	if err != nil {
 		setupLog.Error(err, "unable to start webhook")
+		os.Exit(1)
+	}
+
+	if err = (&controllers.WorkflowReconciler{
+		Client: mgr.GetClient(),
+		// Log:    ctrl.Log.WithName("controllers").WithName("Workflow"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Workflow")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

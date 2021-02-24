@@ -23,3 +23,6 @@ bin
 *.swo
 *~
 .vscode
+.vim
+# ctags
+tags
