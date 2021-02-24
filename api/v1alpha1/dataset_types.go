@@ -20,26 +20,26 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// DataSourceSpec defines the desired state of DataSource
-type DataSourceSpec struct {
-	// Connection defines the connection to use to retrieve this datasource
+// DataSetSpec defines the desired state of DataSet
+type DataSetSpec struct {
+	// Connection defines the connection to use to retrieve this dataset
 	// +optional
 	Connection ConnectionFrom `json:"connection,omitempty"`
 
-	// Type defines the type of the DataSource (e.g. MySQL table)
+	// Type defines the type of the DataSet (e.g. MySQL table)
 	Type string `json:"type"`
 
-	// StorageType defines whether the DataSource is persisted or ephemeral
+	// StorageType defines whether the DataSet is persisted or ephemeral
 	StorageType StorageType `json:"storageType"`
 
 	// Metadata contains any additional information that would be required
-	// to fetch the DataSource from the connection, such as a file name
+	// to fetch the DataSet from the connection, such as a file name
 	// or a table name.
 	// +optional
 	Metadata Credentials `json:"metadata,omitemepty"`
 
 	// Schema contains a reference to a connection where the schema of this
-	// DataSource can be fetched from.
+	// DataSet can be fetched from.
 	// +optional
 	Schema ConnectionFrom `json:"schema,omitempty"`
 }
@@ -54,61 +54,61 @@ type ConnectionFrom struct {
 type StorageType string
 
 const (
-	// PersistentType defines DataSources which are persisted in a data store.
+	// PersistentType defines DataSets which are persisted in a data store.
 	PersistentType StorageType = "Persistent"
 
-	// EphemeralType defines DataSources which should be recreated from a job.
+	// EphemeralType defines DataSets which should be recreated from a job.
 	EphemeralType StorageType = "Ephemeral"
 )
 
-// DataSourceStatus defines the observed state of DataSource
-type DataSourceStatus struct{}
+// DataSetStatus defines the observed state of DataSet
+type DataSetStatus struct{}
 
 // +kubebuilder:object:root=true
 
-// DataSource is the Schema for the datasources API
-type DataSource struct {
+// DataSet is the Schema for the datasets API
+type DataSet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   DataSourceSpec   `json:"spec,omitempty"`
-	Status DataSourceStatus `json:"status,omitempty"`
+	Spec   DataSetSpec   `json:"spec,omitempty"`
+	Status DataSetStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// DataSourceList contains a list of DataSource
-type DataSourceList struct {
+// DataSetList contains a list of DataSet
+type DataSetList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []DataSource `json:"items"`
+	Items           []DataSet `json:"items"`
 }
 
 // +kubebuilder:object:root=true
 
-// DataSourceType defines the structure of a DataSource
-type DataSourceType struct {
+// DataSetType defines the structure of a DataSet
+type DataSetType struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	//+required
-	Spec DataSourceTypeSpec `json:"spec,omitempty"`
+	Spec DataSetTypeSpec `json:"spec,omitempty"`
 }
 
-type DataSourceTypeSpec struct {
-	// MetadataFields defines the structure of the metadata for the DataSource
+type DataSetTypeSpec struct {
+	// MetadataFields defines the structure of the metadata for the DataSet
 	MetadataFields MetadataValidation `json:"metadata,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// DataSourceTypeList contains a list of DataSourceTypes
-type DataSourceTypeList struct {
+// DataSetTypeList contains a list of DataSetTypes
+type DataSetTypeList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []DataSourceType `json:"items"`
+	Items           []DataSetType `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&DataSource{}, &DataSourceList{}, &DataSourceType{}, &DataSourceTypeList{})
+	SchemeBuilder.Register(&DataSet{}, &DataSetList{}, &DataSetType{}, &DataSetTypeList{})
 }
