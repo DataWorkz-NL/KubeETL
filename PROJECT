@@ -5,6 +5,6 @@ resources:
   kind: Connection
   version: v1alpha1
 - group: etl
-  kind: DataSource
+  kind: DataSet
   version: v1alpha1
 version: "2"
