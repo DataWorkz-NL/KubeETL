@@ -37,11 +37,6 @@ type DataSetSpec struct {
 	// or a table name.
 	// +optional
 	Metadata Credentials `json:"metadata,omitemepty"`
-
-	// Schema contains a reference to a connection where the schema of this
-	// DataSet can be fetched from.
-	// +optional
-	Schema ConnectionFrom `json:"schema,omitempty"`
 }
 
 type ConnectionFrom struct {
