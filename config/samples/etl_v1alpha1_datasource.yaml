@@ -1,0 +1,7 @@
+apiVersion: etl.dataworkz.nl/v1alpha1
+kind: DataSource
+metadata:
+  name: datasource-sample
+spec:
+  # Add fields here
+  foo: bar

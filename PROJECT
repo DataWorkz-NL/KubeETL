@@ -4,4 +4,7 @@ resources:
 - group: etl
   kind: Connection
   version: v1alpha1
+- group: etl
+  kind: DataSet
+  version: v1alpha1
 version: "2"
