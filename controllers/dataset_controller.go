@@ -14,6 +14,11 @@ type DataSetReconciler struct {
 }
 
 func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	var dataSet api.DataSet
+	if err := r.Get(ctx, req.NamespacedName, &dataSet); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
 	return ctrl.Result{}, nil
 }
 
