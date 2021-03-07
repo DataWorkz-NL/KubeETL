@@ -57,7 +57,10 @@ const (
 )
 
 // DataSetStatus defines the observed state of DataSet
-type DataSetStatus struct{}
+type DataSetStatus struct{
+	// Healthy indicates the status of the recent DataSet health check.
+	Healthy HealthEnum `json:"healthy"`
+}
 
 // +kubebuilder:object:root=true
 

@@ -79,3 +79,19 @@ type ValueSource struct {
 	// +optional
 	SecretKeyRef *apiv1.SecretKeySelector `json:"secretKeyRef,omitempty" protobuf:"bytes,4,opt,name=secretKeyRef"`
 }
+
+// +kubebuilder:validation:Enum=Healthy;Unhealthy;Unknown
+type HealthEnum string
+
+const (
+    // Healthy indicates a successfull health check was performed.
+    Healthy HealthEnum = "Healthy"
+
+    // Unhealthy indicates the health check failed.
+    Unhealthy HealthEnum = "Unhealthy"
+
+    // Unknown indicates the status of the last health check is unknown.
+	// This status is also used if the controller is unaware of health check
+	// recently.
+    Unknown HealthEnum = "Unknown"
+)
