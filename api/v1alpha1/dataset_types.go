@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	batch "k8s.io/api/batch/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -37,6 +38,11 @@ type DataSetSpec struct {
 	// or a table name.
 	// +optional
 	Metadata Credentials `json:"metadata,omitemepty"`
+
+	// HealthCheck can be configured to perform a periodic health check on the data.
+	// E.g. this can be used to monitor the DataSet quality or the availability.
+	// +optional
+	HealthCheck batch.CronJobSpec `json:"healthCheck"`
 }
 
 type ConnectionFrom struct {
@@ -57,7 +63,7 @@ const (
 )
 
 // DataSetStatus defines the observed state of DataSet
-type DataSetStatus struct{
+type DataSetStatus struct {
 	// Healthy indicates the status of the recent DataSet health check.
 	Healthy HealthEnum `json:"healthy"`
 }

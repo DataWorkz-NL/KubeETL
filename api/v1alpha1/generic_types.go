@@ -84,14 +84,14 @@ type ValueSource struct {
 type HealthEnum string
 
 const (
-    // Healthy indicates a successfull health check was performed.
-    Healthy HealthEnum = "Healthy"
+	// Healthy indicates a successfull health check was performed.
+	Healthy HealthEnum = "Healthy"
 
-    // Unhealthy indicates the health check failed.
-    Unhealthy HealthEnum = "Unhealthy"
+	// Unhealthy indicates the health check failed.
+	Unhealthy HealthEnum = "Unhealthy"
 
-    // Unknown indicates the status of the last health check is unknown.
+	// Unknown indicates the status of the last health check is unknown.
 	// This status is also used if the controller is unaware of health check
 	// recently.
-    Unknown HealthEnum = "Unknown"
+	Unknown HealthEnum = "Unknown"
 )
