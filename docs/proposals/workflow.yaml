@@ -1,0 +1,152 @@
+# FIXME: move to doc
+apiVersion: etl.dataworkz.nl/v1alpha1
+kind: Workflow
+metadata:
+  generateName: connections-
+spec:
+  entrypoint: use-connection
+  connections:
+    - name: mysql-prod
+      alias: mysql
+      injectable:
+        - name: connectionstring
+          env: MYSQL_CONNECTION_STRING
+          value: "{{.user}}@{{.host}}:{{.port}}/{{.database}}"
+        - name: connectionfile
+          file: "myconnection.txt"
+          content: |
+            mysql://{{user}}:{{password}}@{{host}}:{{port}}/{{database}}
+  templates:
+    - name: inject-by-name
+      inject:
+        # only injects the `connectionstring` injectable
+        - connection: mysql
+          name: connectionstring
+      container:
+        image: alpine:3.7
+        command: [sh, -c]
+        args:
+          - echo "value from env: $MYSQL_CONNECTION_STRING"
+
+    - name: injection-all
+      inject:
+        # injections without name specified will inject all injectables
+        - connection: mysql
+      container:
+        image: alpine:3.7
+        command: [sh, -c]
+        args:
+          - |
+            echo "value from env: $MYSQL_CONNECTION_STRING"
+            echo "secret from file: `cat /connections/mountpath/myconnection.txt`"
+
+---
+# carrier secret
+apiVersion: core/v1
+kind: Secret
+metadata:
+  name: connections-9tfdw-mysql
+data:
+  connectionstring: |
+    mysql://admin:p4ssw0rd@foo.bar:3306/baz
+  connectionfile: |
+    admin:p4ssw0rd@foo.bar:3306/baz
+---
+# resulting Argo workflow
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: connections-9tfdw
+spec:
+  entrypoint: use-connection
+  arguments:
+    parameters:
+      - name: injection-secret-mysql
+        value: connections-9tfdw-mysql
+
+  ## gen
+  volumes:
+    - name: injection-volume-mysql
+      secret:
+        secretName: { { workflow.parameters.injection-secret-mysql } }
+        items:
+          - key: connectionfile
+            path: "myconnection.txt"
+  ##
+
+  templates:
+
+    ## gen
+    - name: prepare-injections-mysql
+      container:
+        image: kubeetlinjector
+        args:
+          - --secret-name={{workflow.parameters.injection-secret-mysql}}
+          - --inject
+          - connectionstring=mysql://{{user}}:{{password}}@{{host}}:{{port}}/{{database}}
+          - --inject
+          - connectionfile=mysql://{{user}}:{{password}}@{{host}}:{{port}}/{{database}}
+        env:
+          - name: inject__user
+            valueFrom:
+              secretKeyRef:
+                name: mysql-cred-secret
+                key: user
+          - name: inject__password
+            valueFrom:
+              secretKeyRef:
+                name: mysql-cred-secret
+                key: password
+          - name: inject__host
+            valueFrom:
+              secretKeyRef:
+                name: mysql-cred-secret
+                key: host
+          - name: inject__port
+            valueFrom:
+              secretKeyRef:
+                name: mysql-cred-secret
+                key: port
+          - name: inject__database
+            valueFrom:
+              secretKeyRef:
+                name: mysql-cred-secret
+                key: database
+    ##
+
+    - name: inject-by-name
+      container:
+        image: alpine:3.7
+        command: [sh, -c]
+        args:
+          - echo "value from env: $MYSQL_CONNECTION_STRING"
+
+        ## gen
+        env:
+          - name: MYSQL_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: { { workflow.parameters.injection-secret } }
+                key: connectionstring
+        ##
+
+    - name: injection-all
+      container:
+        image: alpine:3.7
+        command: [sh, -c]
+        args:
+          - |
+            echo "value from env: $MYSQL_CONNECTION_STRING"
+            echo "secret from file: `cat /connections/mountpath/myconnection.txt`"
+
+        ## gen
+        env:
+          - name: MYSQL_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: { { workflow.parameters.injection-secret } }
+                key: connectionstring
+        volumeMounts:
+          - name: injection-volume-mysql
+            mountPath: "/"
+        ##
