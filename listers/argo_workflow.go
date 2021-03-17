@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 //ArgoWorkflowLister lists and finds ArgoWorkflows

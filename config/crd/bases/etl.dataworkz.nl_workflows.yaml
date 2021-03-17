@@ -1222,51 +1222,6 @@ spec:
                 account token should be automatically mounted in pods. ServiceAccountName
                 of ExecutorConfig must be specified if this value is false.
               type: boolean
-            connections:
-              items:
-                description: Contains a reference to a `Connection` and the desired
-                  injections If no InjectDefinitions are specified, credentials will
-                  be injected as environment variables
-                properties:
-                  alias:
-                    description: Optional alias for consuming templates
-                    type: string
-                  global:
-                    description: If true, all the InjectDefinitions will be applied
-                      to all ContainerTemplates in this workflow. If false, consuming
-                      templates must specifically request this ConnectionInjection
-                    type: boolean
-                  injectable:
-                    description: A list of injections
-                    items:
-                      description: InjectDefinition specifies how a connection will
-                        be injected
-                      properties:
-                        key:
-                          description: Name of the injected environment variable
-                          type: string
-                        name:
-                          description: Identifier for this injection in case of selective
-                            injections
-                          type: string
-                        path:
-                          description: Path where value will be mounted as a file
-                          type: string
-                        value:
-                          description: 'Go template that will be rendered using the
-                            connection fields as data Example: mysql://{{.user}}:{{.password}}@{{.host}}:{{.port}}/{{.database}}'
-                          type: string
-                      required:
-                      - value
-                      type: object
-                    type: array
-                  name:
-                    description: Name of the `Connection` that is being injected here
-                    type: string
-                required:
-                - name
-                type: object
-              type: array
             dnsConfig:
               description: PodDNSConfig defines the DNS parameters of a pod in addition
                 to those generated from DNSPolicy.
@@ -1355,6 +1310,42 @@ spec:
                     description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                       TODO: Add other useful fields. apiVersion, kind, uid?'
                     type: string
+                type: object
+              type: array
+            injectable:
+              items:
+                properties:
+                  connectionRef:
+                    description: 'FIXME: ConnectionRef with Name field? Name of the
+                      `Connection` that is being injected here'
+                    properties:
+                      name:
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          TODO: Add other useful fields. apiVersion, kind, uid?'
+                        type: string
+                    type: object
+                  content:
+                    description: 'Go template that will be rendered using the connection
+                      fields as data Example: mysql://{{.user}}:{{.password}}@{{.host}}:{{.port}}/{{.database}}'
+                    type: string
+                  envName:
+                    description: 'FIXME: meh Name of the injected environment variable'
+                    type: string
+                  global:
+                    description: If true, all the InjectDefinitions will be applied
+                      to all ContainerTemplates in this workflow. If false, consuming
+                      templates must specifically request this ConnectionInjection
+                    type: boolean
+                  mountPath:
+                    description: Path where value will be mounted as a file
+                    type: string
+                  name:
+                    description: Name of this InjectableValue
+                    type: string
+                required:
+                - connectionRef
+                - content
+                - name
                 type: object
               type: array
             metrics:
@@ -16966,16 +16957,7 @@ spec:
                       type: array
                     inject:
                       items:
-                        description: Contains the required keys to select an InjectDefinition
-                        properties:
-                          connection:
-                            description: The connection name (or alias if defined)
-                            type: string
-                          name:
-                            type: string
-                        required:
-                        - connection
-                        type: object
+                        type: string
                       type: array
                     inputs:
                       description: Inputs describe what inputs parameters and artifacts
@@ -24244,7 +24226,7 @@ spec:
                   type: string
               type: object
           required:
-          - connections
+          - injectable
           - templates
           type: object
       required:

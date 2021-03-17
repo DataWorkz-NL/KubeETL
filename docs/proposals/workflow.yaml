@@ -1,4 +1,4 @@
-# FIXME: move to doc
+# TODO: not up to date, and should be moved to examples
 apiVersion: etl.dataworkz.nl/v1alpha1
 kind: Workflow
 metadata:
@@ -6,22 +6,22 @@ metadata:
 spec:
   entrypoint: use-connection
   connections:
-    - name: mysql-prod
-      alias: mysql
-      injectable:
-        - name: connectionstring
-          env: MYSQL_CONNECTION_STRING
-          value: "{{.user}}@{{.host}}:{{.port}}/{{.database}}"
-        - name: connectionfile
-          file: "myconnection.txt"
-          content: |
-            mysql://{{user}}:{{password}}@{{host}}:{{port}}/{{database}}
+    - name: mysql-connectionstring
+      connectionRef:
+        name: mysql-prod
+      env:
+        name: MYSQL_CONNECTION_STRING
+      content: "{{.user}}@{{.host}}:{{.port}}/{{.database}}"
+    - name: mysql-file
+      connectionRef:
+        name: mysql-prod
+      mount:
+        path: "myconnection.txt"
+      content: mysql://{{user}}:{{password}}@{{host}}:{{port}}/{{database}}
   templates:
     - name: inject-by-name
       inject:
-        # only injects the `connectionstring` injectable
-        - connection: mysql
-          name: connectionstring
+        - mysql-connectionstring
       container:
         image: alpine:3.7
         command: [sh, -c]
@@ -30,8 +30,7 @@ spec:
 
     - name: injection-all
       inject:
-        # injections without name specified will inject all injectables
-        - connection: mysql
+        - mysql-file
       container:
         image: alpine:3.7
         command: [sh, -c]
@@ -39,17 +38,16 @@ spec:
           - |
             echo "value from env: $MYSQL_CONNECTION_STRING"
             echo "secret from file: `cat /connections/mountpath/myconnection.txt`"
-
 ---
 # carrier secret
 apiVersion: core/v1
 kind: Secret
 metadata:
-  name: connections-9tfdw-mysql
+  name: connections-9tfdw
 data:
-  connectionstring: |
+  mysql-connectionstring: |
     mysql://admin:p4ssw0rd@foo.bar:3306/baz
-  connectionfile: |
+  mysql-file: |
     admin:p4ssw0rd@foo.bar:3306/baz
 ---
 # resulting Argo workflow
