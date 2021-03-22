@@ -70,5 +70,6 @@ func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.DataSet{}).
+		Owns(&batch.CronJob{}).
 		Complete(r)
 }
