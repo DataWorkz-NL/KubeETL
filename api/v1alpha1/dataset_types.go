@@ -37,7 +37,7 @@ type DataSetSpec struct {
 	// to fetch the DataSet from the connection, such as a file name
 	// or a table name.
 	// +optional
-	Metadata Credentials `json:"metadata,omitemepty"`
+	Metadata Credentials `json:"metadata,omitempty"`
 
 	// HealthCheck can be configured to perform a periodic health check on the data.
 	// E.g. this can be used to monitor the DataSet quality or the availability.
@@ -65,7 +65,8 @@ const (
 // DataSetStatus defines the observed state of DataSet
 type DataSetStatus struct {
 	// Healthy indicates the status of the recent DataSet health check.
-	Healthy HealthEnum `json:"healthy"`
+	// +optional
+	Healthy HealthEnum `json:"healthy,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -3945,8 +3945,6 @@ spec:
                 - Unhealthy
                 - Unknown
                 type: string
-            required:
-            - healthy
             type: object
         type: object
     served: true

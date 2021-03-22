@@ -36,9 +36,10 @@ func New(client client.Client, scheme *runtime.Scheme, log logr.Logger) TypedMut
 
 func (m *typedMutator) MutateCronJob(ctx context.Context, controller client.Object, obj *batch.CronJob) error {
 	err := m.mutator.Mutate(ctx, controller, obj, func(existing, expected client.Object) error {
-		// existingObj := existing.(*batch.CronJob)
-		// expectedObj := expected.(*batch.CronJob)
+		existingObj := existing.(*batch.CronJob)
+		expectedObj := expected.(*batch.CronJob)
 
+		existingObj.Spec.JobTemplate = expectedObj.Spec.JobTemplate
 		return nil
 	})
 
