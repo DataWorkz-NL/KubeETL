@@ -26,8 +26,13 @@ type WorkflowList struct {
 type Workflow struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              WorkflowSpec `json:"spec"`
+
+	Spec   WorkflowSpec   `json:"spec"`
+	Status WorkflowStatus `json:"status,omitempty"`
 }
+
+// ConnectionStatus defines the observed state of Workflow
+type WorkflowStatus struct{}
 
 // WorkflowSpec defines the desired state of Workflow
 type WorkflowSpec struct {
@@ -48,7 +53,7 @@ type InjectableValues []InjectableValue
 
 // Template extends an Argo Template with additional functionality
 type Template struct {
-	wfv1.Template  `json:",inline"`
+	wfv1.Template `json:",inline"`
 
 	// InjectedValues contains a list of InjectableValue names that will be injected in this Template
 	// +optional

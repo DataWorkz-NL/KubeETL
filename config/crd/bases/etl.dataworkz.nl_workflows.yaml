@@ -24233,6 +24233,9 @@ spec:
           required:
           - templates
           type: object
+        status:
+          description: ConnectionStatus defines the observed state of Workflow
+          type: object
       required:
       - spec
       type: object
