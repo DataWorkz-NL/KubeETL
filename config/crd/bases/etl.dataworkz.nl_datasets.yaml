@@ -4,20 +4,20 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: v0.2.5
   creationTimestamp: null
-  name: datasources.etl.dataworkz.nl
+  name: datasets.etl.dataworkz.nl
 spec:
   group: etl.dataworkz.nl
   names:
-    kind: DataSource
-    listKind: DataSourceList
-    plural: datasources
-    singular: datasource
+    kind: DataSet
+    listKind: DataSetList
+    plural: datasets
+    singular: dataset
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: DataSource is the Schema for the datasources API
+      description: DataSet is the Schema for the datasets API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -32,11 +32,11 @@ spec:
         metadata:
           type: object
         spec:
-          description: DataSourceSpec defines the desired state of DataSource
+          description: DataSetSpec defines the desired state of DataSet
           properties:
             connection:
               description: Connection defines the connection to use to retrieve this
-                datasource
+                dataset
               properties:
                 connectionFrom:
                   properties:
@@ -99,41 +99,25 @@ spec:
                     type: object
                 type: object
               description: Metadata contains any additional information that would
-                be required to fetch the DataSource from the connection, such as a
-                file name or a table name.
-              type: object
-            schema:
-              description: Schema contains a reference to a connection where the schema
-                of this DataSource can be fetched from.
-              properties:
-                connectionFrom:
-                  properties:
-                    name:
-                      description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                        TODO: Add other useful fields. apiVersion, kind, uid?'
-                      type: string
-                    optional:
-                      description: Specify whether the Connection must be defined
-                        or not.
-                      type: boolean
-                  type: object
+                be required to fetch the DataSet from the connection, such as a file
+                name or a table name.
               type: object
             storageType:
-              description: StorageType defines whether the DataSource is persisted
-                or ephemeral
+              description: StorageType defines whether the DataSet is persisted or
+                ephemeral
               enum:
               - Persistent
               - Ephemeral
               type: string
             type:
-              description: Type defines the type of the DataSource (e.g. MySQL table)
+              description: Type defines the type of the DataSet (e.g. MySQL table)
               type: string
           required:
           - storageType
           - type
           type: object
         status:
-          description: DataSourceStatus defines the observed state of DataSource
+          description: DataSetStatus defines the observed state of DataSet
           type: object
       type: object
   version: v1alpha1
