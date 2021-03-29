@@ -21,6 +21,7 @@ type WorkflowList struct {
 }
 
 // +kubebuilder:object:root:=true
+// +kubebuilder:subresource:status
 
 // Workflow is the schema for the workflows API
 type Workflow struct {
@@ -32,7 +33,10 @@ type Workflow struct {
 }
 
 // ConnectionStatus defines the observed state of Workflow
-type WorkflowStatus struct{}
+type WorkflowStatus struct {
+	// ArgoWorkflowRef is a reference to the Argo Workflow created for this Workflow
+	ArgoWorkflowRef corev1.ObjectReference `json:"argoWorkflowRef,omitempty"`
+}
 
 // WorkflowSpec defines the desired state of Workflow
 type WorkflowSpec struct {
