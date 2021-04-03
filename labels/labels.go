@@ -1,15 +1,20 @@
 package labels
 
-func HasLabel(labels map[string]string, expected string) bool {
-	_, ok := labels[expected]
+func HasLabel(labels map[string]string, key string) bool {
+	_, ok := labels[key]
 	return ok
 }
 
-func GetLabelValue(labels map[string]string, expected string) string {
-	if !HasLabel(labels, expected) {
+func GetLabelValue(labels map[string]string, key string) string {
+	if !HasLabel(labels, key) {
 		return ""
 	}
 
-	val, _ := labels[expected]
+	val, _ := labels[key]
 	return val
+}
+
+func AddLabel(labels map[string]string, key, value string) map[string]string {
+	labels[key] = value
+	return labels
 }
