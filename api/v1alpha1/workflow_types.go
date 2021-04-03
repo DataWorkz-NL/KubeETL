@@ -35,7 +35,7 @@ type Workflow struct {
 // ConnectionStatus defines the observed state of Workflow
 type WorkflowStatus struct {
 	// ArgoWorkflowRef is a reference to the Argo Workflow created for this Workflow
-	ArgoWorkflowRef corev1.ObjectReference `json:"argoWorkflowRef,omitempty"`
+	ArgoWorkflowRef *corev1.ObjectReference `json:"argoWorkflowRef,omitempty"`
 }
 
 // WorkflowSpec defines the desired state of Workflow

@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
 	batch "k8s.io/api/batch/v1beta1"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/dataworkz/kubeetl/api/v1alpha1"
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
 	"github.com/dataworkz/kubeetl/mutators"
 )
@@ -36,38 +36,63 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	var cronJobs batch.CronJobList
-	if err := r.List(ctx, &cronJobs, client.InNamespace(req.Namespace), client.MatchingFields{".metadata.controller": req.Name}); err != nil {
-		log.Error(err, "unable to list CronJobs")
-		return ctrl.Result{}, err
-	}
+	// TODO refactor this piece of nested crap
+	if dataSet.Spec.HealthCheck != nil {
+		var workflow api.Workflow
+		if err := r.Get(ctx, dataSet.Spec.HealthCheck.GetNamespacedName(), &workflow); err != nil {
+			log.Error(err, "unable to fetch Workflow for DataSet")
 
-	cronJob := DataSetToCronJob(dataSet)
-	if err := r.TypedMutator.MutateCronJob(ctx, &dataSet, &cronJob); err != nil {
-		log.Error(err, "Could not create CronJob for DataSet HealthCheck")
-		return ctrl.Result{}, err
+			// TODO extract dataset status updates into function
+			dataSet.Status.Healthy = api.Unknown
+			err = r.Status().Update(ctx, &dataSet)
+			if err != nil {
+				log.Error(err, "unable to update DataSet status")
+				return ctrl.Result{}, err
+			}
+		}
+
+		wfr := workflow.Status.ArgoWorkflowRef
+		if wfr != nil {
+			var argoWorkflow wfv1.Workflow
+			key := types.NamespacedName{
+				Name:      wfr.Name,
+				Namespace: wfr.Namespace,
+			}
+			if err := r.Get(ctx, key, &argoWorkflow); err != nil {
+				log.Error(err, "unable to fetch ArgoWorkflow for DataSet")
+				dataSet.Status.Healthy = api.Unknown
+
+				err = r.Status().Update(ctx, &dataSet)
+				if err != nil {
+					log.Error(err, "unable to update DataSet status")
+					return ctrl.Result{}, err
+				}
+			}
+
+			if argoWorkflow.Status.Failed() {
+				dataSet.Status.Healthy = api.Unhealthy
+			} else {
+				dataSet.Status.Healthy = api.Healthy
+			}
+
+			err := r.Status().Update(ctx, &dataSet)
+			if err != nil {
+				log.Error(err, "unable to update DataSet status")
+				return ctrl.Result{}, err
+			}
+		}
+
+		dataSet.Status.Healthy = api.Unknown
+
+		err := r.Status().Update(ctx, &dataSet)
+		if err != nil {
+			log.Error(err, "unable to update DataSet status")
+			return ctrl.Result{}, err
+		}
+
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func DataSetToCronJob(dataSet v1alpha1.DataSet) batch.CronJob {
-	meta := metav1.ObjectMeta{
-		Name:      dataSet.Name,
-		Namespace: dataSet.Namespace,
-	}
-
-	spec := dataSet.Spec.HealthCheck
-
-	// TODO define sane defaults for the HealthCheck, maybe JobTemplate is to much to handle for
-	// users
-	// Always is not OK
-	spec.JobTemplate.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyOnFailure
-
-	return batch.CronJob{
-		ObjectMeta: meta,
-		Spec:       spec,
-	}
 }
 
 func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -75,6 +100,7 @@ func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		r.TypedMutator = mutators.New(r.Client, r.Scheme, r.Log)
 	}
 
+	// TODO update index
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batch.CronJob{}, ".metadata.controller", func(rawObj client.Object) []string {
 		job := rawObj.(*batch.CronJob)
 		owner := metav1.GetControllerOf(job)
@@ -91,6 +117,9 @@ func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return fmt.Errorf("failed to set up index on CronJob: %w", err)
 	}
 
+	// TODO set up watch for api.Workflow status changes so that we can reconcile the DataSet status if the Workflow Failed
+	// Figure out whether the api.Workflow status changes are triggered if the underlying argo workflow fails/succeeds. If not we need
+	// to ensure this happens
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.DataSet{}).
 		Owns(&batch.CronJob{}).
