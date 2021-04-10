@@ -6,6 +6,7 @@ import (
 	
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	batch "k8s.io/api/batch/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -69,48 +70,41 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			}
 		}
 
-		wfr := workflow.Status.ArgoWorkflowRef
-		if wfr != nil {
-			var argoWorkflow wfv1.Workflow
-			key := types.NamespacedName{
-				Name:      wfr.Name,
-				Namespace: wfr.Namespace,
-			}
-			if err := r.Get(ctx, key, &argoWorkflow); err != nil {
-				log.Error(err, "unable to fetch ArgoWorkflow for DataSet")
-				dataSet.Status.Healthy = api.Unknown
-
-				err = r.Status().Update(ctx, &dataSet)
-				if err != nil {
-					log.Error(err, "unable to update DataSet status")
-					return ctrl.Result{}, err
-				}
-			}
-
-			if argoWorkflow.Status.Failed() {
-				dataSet.Status.Healthy = api.Unhealthy
-			} else {
-				dataSet.Status.Healthy = api.Healthy
-			}
-
-			err := r.Status().Update(ctx, &dataSet)
-			if err != nil {
-				log.Error(err, "unable to update DataSet status")
-				return ctrl.Result{}, err
-			}
+		failed, err := r.getArgoWorkflowStatus(ctx, workflow.Status.ArgoWorkflowRef)
+		if err != nil {
+			dataSet.Status.Healthy = api.Unknown
+		} else if failed {
+			dataSet.Status.Healthy = api.Unhealthy
 		}
 
-		dataSet.Status.Healthy = api.Unknown
-
-		err := r.Status().Update(ctx, &dataSet)
+		err = r.Status().Update(ctx, &dataSet)
 		if err != nil {
 			log.Error(err, "unable to update DataSet status")
 			return ctrl.Result{}, err
+		} else {
+			dataSet.Status.Healthy = api.Healthy
 		}
 
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func (r *DataSetReconciler) getArgoWorkflowStatus(ctx context.Context, wfr *corev1.ObjectReference) (bool, error) {
+	if wfr != nil {
+		var argoWorkflow wfv1.Workflow
+		key := types.NamespacedName{
+			Name:      wfr.Name,
+			Namespace: wfr.Namespace,
+		}
+		if err := r.Get(ctx, key, &argoWorkflow); err != nil {
+			return false, fmt.Errorf("unable to fetch ArgoWorkflow for DataSet")
+		}
+
+		return argoWorkflow.Status.Failed(), nil
+	}
+
+	return false, fmt.Errorf("No ArgoWorkflow created for Workflow")
 }
 
 func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
