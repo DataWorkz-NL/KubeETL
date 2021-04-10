@@ -109,7 +109,7 @@ type WorkflowReference struct {
 
 func (r *WorkflowReference) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
-		Name: r.Name,
+		Name:      r.Name,
 		Namespace: r.Namespace,
 	}
 }

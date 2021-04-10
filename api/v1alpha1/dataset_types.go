@@ -40,7 +40,7 @@ type DataSetSpec struct {
 
 	// HealthCheck can be configured to perform a periodic health check on the data.
 	// E.g. this can be used to monitor the DataSet quality or the availability.
-	// HealthCheck is a WorkflowReference and the DataSet reconciler will use the 
+	// HealthCheck is a WorkflowReference and the DataSet reconciler will use the
 	// latest workflow run as an indication of DataSet health.
 	// This allows users to define a workflow that performs e.g. a Data Quality check
 	// and fail the workflow when the Data Quality is below a user defined threshold.

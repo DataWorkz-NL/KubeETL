@@ -19,14 +19,12 @@ import (
 
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
 	"github.com/dataworkz/kubeetl/labels"
-	"github.com/dataworkz/kubeetl/mutators"
 )
 
 type DataSetReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
-	mutators.TypedMutator
 }
 
 const (
@@ -58,7 +56,7 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	} else {
 		for _, wf := range wfl.Items {
 			key := types.NamespacedName{
-				Name: wf.Name,
+				Name:      wf.Name,
 				Namespace: wf.Namespace,
 			}
 			// If the workflow is not used as healthcheck for this DataSet, remove the DataSet from label
@@ -66,9 +64,9 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				val := labels.GetLabelValue(wf.Labels, healthcheckLabel)
 				ss := labels.StringSet(val)
 				newSs := ss.Remove(dataSet.Name)
-				var newLabels map[string]string
 				if newSs.IsEmpty() {
-					newLabels = labels.RemoveLabel(wf.Labels, healthcheckLabel)
+					newLabels := labels.RemoveLabel(wf.Labels, healthcheckLabel)
+					wf.Labels = newLabels
 				} else {
 					// TODO move to labels package
 					wf.Labels[healthcheckLabel] = string(newSs)
@@ -97,7 +95,7 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				return ctrl.Result{}, err
 			}
 		}
-		
+
 		// TODO check for label vale of healtcheck label, set it if it isn't there
 		// otherwise check if the value contains a reference to this dataset and update it
 		// if it doesn't
@@ -149,10 +147,6 @@ func (r *DataSetReconciler) getArgoWorkflowStatus(ctx context.Context, wfr *core
 }
 
 func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if r.TypedMutator == nil {
-		r.TypedMutator = mutators.New(r.Client, r.Scheme, r.Log)
-	}
-
 	// TODO update index
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batch.CronJob{}, ".metadata.controller", func(rawObj client.Object) []string {
 		job := rawObj.(*batch.CronJob)

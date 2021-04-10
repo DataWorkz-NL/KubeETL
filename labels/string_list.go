@@ -6,7 +6,6 @@ import "strings"
 // and ensures uniqueness of the values
 type StringSet string
 
-
 // NewStringSet creates a new StringSet from
 // the given strings.
 func NewStringSet(el ...string) StringSet {
@@ -28,7 +27,7 @@ func (s StringSet) Contains(val string) bool {
 
 // IsEmpty returns whether the StringSet is empty
 func (s StringSet) IsEmpty() bool {
-	return string(s) == "" 
+	return string(s) == ""
 }
 
 // Add adds the given value to the StringSet
