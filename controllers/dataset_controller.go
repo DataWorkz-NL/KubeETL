@@ -6,7 +6,6 @@ import (
 
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
-	batch "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	k8slabels "k8s.io/apimachinery/pkg/labels"
@@ -151,6 +150,5 @@ func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// to ensure this happens
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.DataSet{}).
-		Owns(&batch.CronJob{}).
 		Complete(r)
 }
