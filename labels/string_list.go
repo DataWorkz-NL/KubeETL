@@ -26,6 +26,11 @@ func (s StringSet) Contains(val string) bool {
 	return i != -1
 }
 
+// IsEmpty returns whether the StringSet is empty
+func (s StringSet) IsEmpty() bool {
+	return string(s) == "" 
+}
+
 // Add adds the given value to the StringSet
 // if it wasn't already added.
 func (s StringSet) Add(val string) StringSet {
