@@ -3,18 +3,20 @@ package controllers
 import (
 	"context"
 	"fmt"
-	
+
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 	batch "k8s.io/api/batch/v1beta1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8slabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	
+
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
 	"github.com/dataworkz/kubeetl/labels"
 	"github.com/dataworkz/kubeetl/mutators"
@@ -40,6 +42,45 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			log.Error(err, "unable to fetch DataSet")
 		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Remove any labels of workflows not currently used as healthcheck
+	var wfl api.WorkflowList
+	requirement, err := k8slabels.NewRequirement(healthcheckLabel, selection.Exists, []string{})
+	if err != nil {
+		log.Error(err, "unable to create label selector for workflows")
+		return ctrl.Result{}, err
+	}
+
+	labelSelector := k8slabels.NewSelector().Add(*requirement)
+	if err := r.List(ctx, &wfl, &client.ListOptions{LabelSelector: labelSelector}); err != nil {
+		log.Error(err, "unable to list Workflows")
+	} else {
+		for _, wf := range wfl.Items {
+			key := types.NamespacedName{
+				Name: wf.Name,
+				Namespace: wf.Namespace,
+			}
+			// If the workflow is not used as healthcheck for this DataSet, remove the DataSet from label
+			if dataSet.Spec.HealthCheck.GetNamespacedName() != key {
+				val := labels.GetLabelValue(wf.Labels, healthcheckLabel)
+				ss := labels.StringSet(val)
+				newSs := ss.Remove(dataSet.Name)
+				var newLabels map[string]string
+				if newSs.IsEmpty() {
+					newLabels = labels.RemoveLabel(wf.Labels, healthcheckLabel)
+				} else {
+					// TODO move to labels package
+					wf.Labels[healthcheckLabel] = string(newSs)
+				}
+
+				err := r.Update(ctx, &wf)
+				if err != nil {
+					log.Error(err, "unable to update Workflow labels")
+					return ctrl.Result{}, err
+				}
+			}
+		}
 	}
 
 	// TODO refactor this piece of nested crap
