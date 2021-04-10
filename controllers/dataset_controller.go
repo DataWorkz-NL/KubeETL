@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
-
+	
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
 	batch "k8s.io/api/batch/v1beta1"
@@ -13,8 +13,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
+	
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
+	"github.com/dataworkz/kubeetl/labels"
 	"github.com/dataworkz/kubeetl/mutators"
 )
 
@@ -24,6 +25,10 @@ type DataSetReconciler struct {
 	Scheme *runtime.Scheme
 	mutators.TypedMutator
 }
+
+const (
+	healthcheckLabel = "etl.dataworkz.nl/healthcheck"
+)
 
 func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("dataset", req.NamespacedName)
@@ -47,6 +52,19 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			err = r.Status().Update(ctx, &dataSet)
 			if err != nil {
 				log.Error(err, "unable to update DataSet status")
+				return ctrl.Result{}, err
+			}
+		}
+		
+		// TODO check for label vale of healtcheck label, set it if it isn't there
+		// otherwise check if the value contains a reference to this dataset and update it
+		// if it doesn't
+		val := labels.GetLabelValue(workflow.Labels, healthcheckLabel)
+		if val == "" {
+			workflow.Labels = labels.AddLabel(workflow.Labels, healthcheckLabel, dataSet.Name)
+			err := r.Update(ctx, &workflow)
+			if err != nil {
+				log.Error(err, "unable to update Workflow labels")
 				return ctrl.Result{}, err
 			}
 		}
