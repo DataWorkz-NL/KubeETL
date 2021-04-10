@@ -18,3 +18,8 @@ func AddLabel(labels map[string]string, key, value string) map[string]string {
 	labels[key] = value
 	return labels
 }
+
+func RemoveLabel(labels map[string]string, key string) map[string]string {
+	delete(labels, key)
+	return labels
+}

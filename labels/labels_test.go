@@ -15,6 +15,16 @@ var _ = DescribeTable("HasLabel",
 	Entry("Matched labels should return true", map[string]string{"etl.dataworkz.nl/healthcheck": "value"}, "etl.dataworkz.nl/healthcheck", true),
 )
 
+var _ = DescribeTable("RemoveLabel",
+	func(labels map[string]string, key string, newLabels map[string]string) {
+		res := RemoveLabel(labels, key)
+		Expect(res).To(Equal(newLabels))
+	},
+	Entry("Empty labels should return empty labels", map[string]string{}, "etl.dataworkz.nl/healthcheck", map[string]string{}),
+	Entry("Unmatched labels should return labels unaltered", map[string]string{"etl.dataworkz.nl/otherlabel": "value"}, "etl.dataworkz.nl/healthcheck", map[string]string{"etl.dataworkz.nl/otherlabel": "value"}),
+	Entry("Matched labels should return altered labels", map[string]string{"etl.dataworkz.nl/healthcheck": "value"}, "etl.dataworkz.nl/healthcheck", map[string]string{}),
+)
+
 var _ = DescribeTable("GetLabelValue",
 	func(labels map[string]string, key string, expectedVal string) {
 		res := GetLabelValue(labels, key)
