@@ -9,7 +9,6 @@ import (
 	batch "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8slabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/selection"
@@ -147,23 +146,6 @@ func (r *DataSetReconciler) getArgoWorkflowStatus(ctx context.Context, wfr *core
 }
 
 func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	// TODO update index
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batch.CronJob{}, ".metadata.controller", func(rawObj client.Object) []string {
-		job := rawObj.(*batch.CronJob)
-		owner := metav1.GetControllerOf(job)
-		if owner == nil {
-			return nil
-		}
-
-		if owner.APIVersion != api.GroupVersion.String() || owner.Kind != "DataSet" {
-			return nil
-		}
-
-		return []string{owner.Name}
-	}); err != nil {
-		return fmt.Errorf("failed to set up index on CronJob: %w", err)
-	}
-
 	// TODO set up watch for api.Workflow status changes so that we can reconcile the DataSet status if the Workflow Failed
 	// Figure out whether the api.Workflow status changes are triggered if the underlying argo workflow fails/succeeds. If not we need
 	// to ensure this happens
