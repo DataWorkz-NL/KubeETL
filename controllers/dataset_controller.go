@@ -14,6 +14,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
 	"github.com/dataworkz/kubeetl/labels"
@@ -148,7 +151,39 @@ func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// TODO set up watch for api.Workflow status changes so that we can reconcile the DataSet status if the Workflow Failed
 	// Figure out whether the api.Workflow status changes are triggered if the underlying argo workflow fails/succeeds. If not we need
 	// to ensure this happens
+	wfKind := &source.Kind{Type: &api.Workflow{}}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.DataSet{}).
+		Watches(wfKind, workflowEventHandler()).
 		Complete(r)
+}
+
+// workflowEventHandler returns a custom event handler to translate Workflow events into Dataset events.
+// If the workflow has an "etl.dataworkz.nl/healthcheck" label, that can be used to translate the label values
+// into DataSet. The label value is a comma seperated list of DataSet names. The DataSet is assumed to be
+// in the same namespace as the workflow.
+func workflowEventHandler() handler.EventHandler {
+	mapFn := func(obj client.Object) []reconcile.Request {
+		l := obj.GetLabels()
+		if labels.HasLabel(l, healthcheckLabel) {
+			s := labels.GetLabelValue(l, healthcheckLabel)
+			ss := labels.StringSet(s)
+			names := ss.Split()
+			var requests []reconcile.Request
+			for _, name := range names {
+				req := reconcile.Request{
+					NamespacedName: types.NamespacedName{
+						Name:      name,
+						Namespace: obj.GetNamespace(),
+					},
+				}
+				requests = append(requests, req)
+			}
+			return requests
+		}
+
+		return []reconcile.Request{}
+	}
+
+	return handler.EnqueueRequestsFromMapFunc(mapFn)
 }
