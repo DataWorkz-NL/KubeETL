@@ -47,9 +47,9 @@ spec:
         - name: MYSQL_CONNECTION_URL
         - value: {{ datasource.connection.url }}
   dataSource:
-    fromRef: {{ inpiut.dataSource }}
+    fromRef: {{ input.dataSource }}
   dataSink:
-   fromRef: {{ inpiut.dataSink }}
+   fromRef: {{ input.dataSink }}
   schema: # inline Connection to store the schema
     url: s3://schema-storage/finance/transaction_fact
   metadata:
