@@ -48,16 +48,19 @@ type WorkflowSpec struct {
 	// +optional
 	InjectableValues InjectableValues `json:"injectable,omitempty"`
 
-	// Templates contains the templates for this WorkflowSpec
+	// InjectInto contains the templates for which KubeETL should inject
+	// the InjectableValues. This should refer to the defined Templates of the
+	// WorkflowSpec.
 	// +required
-	Templates []Template `json:"templates"`
+	InjectInto []TemplateRef `json:"injectInto"`
 }
 
 type InjectableValues []InjectableValue
 
-// Template extends an Argo Template with additional functionality
-type Template struct {
-	wfv1.Template `json:",inline"`
+// TemplateRef extends an Argo Template with additional functionality
+type TemplateRef struct {
+	// +required
+	Name  string `json:"name"`
 
 	// InjectedValues contains a list of InjectableValue names that will be injected in this Template
 	// +optional
