@@ -32,7 +32,7 @@ import (
 	"github.com/dataworkz/kubeetl/listers"
 )
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-v1alpha1-connection,mutating=false,failurePolicy=fail,groups=etl.dataworkz.nl,resources=connections,versions=v1alpha1,name=connection.dataworkz.nl
+// +kubebuilder:webhook:verbs=create;update,path=/validate-v1alpha1-connection,mutating=false,failurePolicy=fail,groups=etl.dataworkz.nl,resources=connections,versions=v1alpha1,sideEffects=None,name=connection.dataworkz.nl,admissionReviewVersions=v1beta1
 
 // SetupValidatingConnectionWebhookWithManager registers the validating web hook for connections with the manager
 func SetupValidatingConnectionWebhookWithManager(mgr ctrl.Manager) error {
