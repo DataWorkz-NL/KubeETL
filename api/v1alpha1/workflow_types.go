@@ -60,7 +60,7 @@ type InjectableValues []InjectableValue
 // TemplateRef extends an Argo Template with additional functionality
 type TemplateRef struct {
 	// +required
-	Name  string `json:"name"`
+	Name string `json:"name"`
 
 	// InjectedValues contains a list of InjectableValue names that will be injected in this Template
 	// +optional
