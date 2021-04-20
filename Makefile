@@ -21,6 +21,10 @@ test: generate fmt vet manifests
 manager: generate fmt vet
 	go build -o bin/manager main.go
 
+# Build hack binary
+hack: fmt vet
+	go build -o bin/hack ./hack
+
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
 	go run ./main.go
@@ -39,8 +43,9 @@ deploy: manifests
 	kustomize build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen
+manifests: controller-gen hack
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	bin/hack removecrdvalidation config/crd/bases/etl.dataworkz.nl_workflows.yaml
 
 # Run go fmt against code
 fmt:
