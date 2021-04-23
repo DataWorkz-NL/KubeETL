@@ -35,11 +35,12 @@ var _ = DescribeTable("GetLabelValue",
 	Entry("Matched labels should return the label value", map[string]string{"etl.dataworkz.nl/healthcheck": "value"}, "etl.dataworkz.nl/healthcheck", "value"),
 )
 
-var _ = DescribeTable("GetLabelValue",
+var _ = DescribeTable("AddLabel",
 	func(labels map[string]string, key string, value string, expectedLabels map[string]string) {
 		res := AddLabel(labels, key, value)
 		Expect(res).To(Equal(expectedLabels))
 	},
+	Entry("Nil labels should return new label set with new labels", nil, "etl.dataworkz.nl/healthcheck", "value", map[string]string{"etl.dataworkz.nl/healthcheck": "value"}),
 	Entry("Empty labels should return new label set with new labels", map[string]string{}, "etl.dataworkz.nl/healthcheck", "value", map[string]string{"etl.dataworkz.nl/healthcheck": "value"}),
 	Entry("Non-conflicting labels should return new merged labels", map[string]string{"etl.dataworkz.nl/otherlabel": "value"}, "etl.dataworkz.nl/healthcheck", "value", map[string]string{"etl.dataworkz.nl/otherlabel": "value", "etl.dataworkz.nl/healthcheck": "value"}),
 	Entry("Matched labels should update the label value", map[string]string{"etl.dataworkz.nl/healthcheck": "value"}, "etl.dataworkz.nl/healthcheck", "value2", map[string]string{"etl.dataworkz.nl/healthcheck": "value2"}),

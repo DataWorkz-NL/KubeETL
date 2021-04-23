@@ -15,6 +15,10 @@ func GetLabelValue(labels map[string]string, key string) string {
 }
 
 func AddLabel(labels map[string]string, key, value string) map[string]string {
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+
 	labels[key] = value
 	return labels
 }
