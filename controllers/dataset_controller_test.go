@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,6 +16,36 @@ import (
 var _ = Describe("DataSetReconciler", func() {
 	const timeout = time.Second * 30
 	const interval = time.Second * 1
+	var wfKey types.NamespacedName
+	BeforeEach(func() {
+		wfKey = types.NamespacedName{
+			Name:      "default-workflow",
+			Namespace: "default",
+		}
+
+		wfSpec := api.WorkflowSpec{
+			ArgoWorkflowSpec: wfv1.WorkflowSpec{},
+		}
+
+		wf := api.Workflow{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      wfKey.Name,
+				Namespace: wfKey.Namespace,
+			},
+			Spec: wfSpec,
+		}
+
+		ctx := context.Background()
+		Expect(k8sClient.Create(ctx, &wf)).Should(Succeed())
+	})
+
+	AfterEach(func() {
+
+		var wf api.Workflow
+		ctx := context.Background()
+		Expect(k8sClient.Get(ctx, wfKey, &wf)).Should(Succeed())
+		Expect(k8sClient.Delete(ctx, &wf)).Should(Succeed())
+	})
 
 	Context("DataSet with HealthCheck", func() {
 		It("Should set DataSet health to Unknown for a unknown Workflow", func() {
@@ -51,6 +82,8 @@ var _ = Describe("DataSetReconciler", func() {
 
 				return res.Status.Healthy == api.Unknown
 			}, timeout, interval)
+
+			Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
 		})
 	})
 })
