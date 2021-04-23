@@ -41,7 +41,6 @@ var _ = Describe("DataSetReconciler", func() {
 	})
 
 	AfterEach(func() {
-
 		var wf api.Workflow
 		ctx := context.Background()
 		Expect(k8sClient.Get(ctx, wfKey, &wf)).Should(Succeed())
@@ -74,6 +73,7 @@ var _ = Describe("DataSetReconciler", func() {
 			}
 
 			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
+
 			Eventually(func() bool {
 				var res *api.DataSet
 				err := k8sClient.Get(ctx, key, res)
@@ -82,7 +82,7 @@ var _ = Describe("DataSetReconciler", func() {
 				}
 
 				return res.Status.Healthy == api.Unknown
-			}, timeout, interval)
+			}, timeout, interval).Should(BeTrue())
 
 			Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
 		})
@@ -123,6 +123,37 @@ var _ = Describe("DataSetReconciler", func() {
 
 				return labels.HasLabel(res.Labels, healthcheckLabel)
 			}, timeout, interval)
+
+			By("Cleaning up the label if the DataSet no longer has a healthcheck")
+			var ds api.DataSet
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, key, &ds)
+				if err != nil {
+					return false
+				}
+
+				return true
+			}, timeout, interval).Should(BeTrue())
+
+			ds.Spec.HealthCheck = nil
+			Eventually(func() bool {
+				err := k8sClient.Update(ctx, &ds)
+				if err != nil {
+					return false
+				}
+
+				return true
+			}, timeout, interval).Should(BeTrue())
+
+			Eventually(func() bool {
+				var res *api.Workflow
+				err := k8sClient.Get(ctx, wfKey, res)
+				if err != nil {
+					return false
+				}
+
+				return !labels.HasLabel(res.Labels, healthcheckLabel)
+			}, timeout, interval).Should(BeTrue())
 
 			Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
 		})
