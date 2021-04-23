@@ -107,3 +107,7 @@ func (iv *InjectableValue) GetType() InjectableValueType {
 		return ""
 	}
 }
+
+func init() {
+	SchemeBuilder.Register(&Workflow{}, &WorkflowList{})
+}
