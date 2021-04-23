@@ -153,9 +153,6 @@ func (r *DataSetReconciler) handleHealthCheckUpdate(ctx context.Context, log log
 }
 
 func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	// TODO set up watch for api.Workflow status changes so that we can reconcile the DataSet status if the Workflow Failed
-	// Figure out whether the api.Workflow status changes are triggered if the underlying argo workflow fails/succeeds. If not we need
-	// to ensure this happens
 	wfKind := &source.Kind{Type: &api.Workflow{}}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.DataSet{}).
