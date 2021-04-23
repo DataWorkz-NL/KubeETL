@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
+	"github.com/dataworkz/kubeetl/labels"
 )
 
 var _ = Describe("DataSetReconciler", func() {
@@ -81,6 +82,46 @@ var _ = Describe("DataSetReconciler", func() {
 				}
 
 				return res.Status.Healthy == api.Unknown
+			}, timeout, interval)
+
+			Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
+		})
+
+		It("Should use an existing Workflow as DataSet healthcheck indicator", func() {
+			ctx := context.Background()
+			key := types.NamespacedName{
+				Name:      "default-dataset",
+				Namespace: "default",
+			}
+
+			spec := api.DataSetSpec{
+				StorageType: api.PersistentType,
+				Type:        "MySQL DataSet",
+				HealthCheck: &api.WorkflowReference{
+					Namespace: wfKey.Namespace,
+					Name:      wfKey.Name,
+				},
+			}
+
+			created := api.DataSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      key.Name,
+					Namespace: key.Namespace,
+				},
+				Spec: spec,
+			}
+
+			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
+
+			By("Setting the DataSet Healthcheck label on the WorkFlow")
+			Eventually(func() bool {
+				var res *api.Workflow
+				err := k8sClient.Get(ctx, wfKey, res)
+				if err != nil {
+					return false
+				}
+
+				return labels.HasLabel(res.Labels, healthcheckLabel)
 			}, timeout, interval)
 
 			Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
