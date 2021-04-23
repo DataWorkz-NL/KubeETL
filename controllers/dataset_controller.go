@@ -114,14 +114,14 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				dataSet.Status.Healthy = api.Unknown
 			} else if failed {
 				dataSet.Status.Healthy = api.Unhealthy
+			} else {
+				dataSet.Status.Healthy = api.Healthy
 			}
 
 			err = r.Status().Update(ctx, &dataSet)
 			if err != nil {
 				log.Error(err, "unable to update DataSet status")
 				return ctrl.Result{}, err
-			} else {
-				dataSet.Status.Healthy = api.Healthy
 			}
 		}
 	}

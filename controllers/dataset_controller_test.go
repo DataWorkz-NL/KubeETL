@@ -125,9 +125,9 @@ var _ = Describe("DataSetReconciler", func() {
 			}, timeout, interval)
 
 			By("Cleaning up the label if the DataSet no longer has a healthcheck")
-			var ds api.DataSet
+			ds := &api.DataSet{}
 			Eventually(func() bool {
-				err := k8sClient.Get(ctx, key, &ds)
+				err := k8sClient.Get(ctx, key, ds)
 				if err != nil {
 					return false
 				}
@@ -137,7 +137,7 @@ var _ = Describe("DataSetReconciler", func() {
 
 			ds.Spec.HealthCheck = nil
 			Eventually(func() bool {
-				err := k8sClient.Update(ctx, &ds)
+				err := k8sClient.Update(ctx, ds)
 				if err != nil {
 					return false
 				}
@@ -146,7 +146,7 @@ var _ = Describe("DataSetReconciler", func() {
 			}, timeout, interval).Should(BeTrue())
 
 			Eventually(func() bool {
-				var res *api.Workflow
+				res := &api.Workflow{}
 				err := k8sClient.Get(ctx, wfKey, res)
 				if err != nil {
 					return false
