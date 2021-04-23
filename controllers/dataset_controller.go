@@ -95,36 +95,35 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				log.Error(err, "unable to update DataSet status")
 				return ctrl.Result{}, err
 			}
-		}
+		} else {
+			// TODO check for label vale of healtcheck label, set it if it isn't there
+			// otherwise check if the value contains a reference to this dataset and update it
+			// if it doesn't
+			val := labels.GetLabelValue(workflow.Labels, healthcheckLabel)
+			if val == "" {
+				workflow.Labels = labels.AddLabel(workflow.Labels, healthcheckLabel, dataSet.Name)
+				err := r.Update(ctx, &workflow)
+				if err != nil {
+					log.Error(err, "unable to update Workflow labels")
+					return ctrl.Result{}, err
+				}
+			}
 
-		// TODO check for label vale of healtcheck label, set it if it isn't there
-		// otherwise check if the value contains a reference to this dataset and update it
-		// if it doesn't
-		val := labels.GetLabelValue(workflow.Labels, healthcheckLabel)
-		if val == "" {
-			workflow.Labels = labels.AddLabel(workflow.Labels, healthcheckLabel, dataSet.Name)
-			err := r.Update(ctx, &workflow)
+			failed, err := r.getArgoWorkflowStatus(ctx, workflow.Status.ArgoWorkflowRef)
 			if err != nil {
-				log.Error(err, "unable to update Workflow labels")
+				dataSet.Status.Healthy = api.Unknown
+			} else if failed {
+				dataSet.Status.Healthy = api.Unhealthy
+			}
+
+			err = r.Status().Update(ctx, &dataSet)
+			if err != nil {
+				log.Error(err, "unable to update DataSet status")
 				return ctrl.Result{}, err
+			} else {
+				dataSet.Status.Healthy = api.Healthy
 			}
 		}
-
-		failed, err := r.getArgoWorkflowStatus(ctx, workflow.Status.ArgoWorkflowRef)
-		if err != nil {
-			dataSet.Status.Healthy = api.Unknown
-		} else if failed {
-			dataSet.Status.Healthy = api.Unhealthy
-		}
-
-		err = r.Status().Update(ctx, &dataSet)
-		if err != nil {
-			log.Error(err, "unable to update DataSet status")
-			return ctrl.Result{}, err
-		} else {
-			dataSet.Status.Healthy = api.Healthy
-		}
-
 	}
 
 	return ctrl.Result{}, nil
