@@ -17,7 +17,7 @@ var _ = Describe("DataSetReconciler", func() {
 	const interval = time.Second * 1
 
 	Context("DataSet with HealthCheck", func() {
-		It("Should create a CronJob on creation of the DataSet", func() {
+		It("Should set DataSet health to Unknown for a unknown Workflow", func() {
 			ctx := context.Background()
 			key := types.NamespacedName{
 				Name:      "default-dataset",
@@ -29,7 +29,7 @@ var _ = Describe("DataSetReconciler", func() {
 				Type:        "MySQL DataSet",
 				HealthCheck: &api.WorkflowReference{
 					Namespace: "default",
-					Name:      "healthcheck-wf",
+					Name:      "unknown-wf",
 				},
 			}
 
@@ -42,6 +42,15 @@ var _ = Describe("DataSetReconciler", func() {
 			}
 
 			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
+			Eventually(func() bool {
+				var res *api.DataSet
+				err := k8sClient.Get(ctx, key, res)
+				if err != nil {
+					return false
+				}
+
+				return res.Status.Healthy == api.Unknown
+			}, timeout, interval)
 		})
 	})
 })
