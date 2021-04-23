@@ -100,8 +100,7 @@ func (r *DataSetReconciler) handleWorkflowLabelCleanup(ctx context.Context, log 
 					newLabels := labels.RemoveLabel(wf.Labels, healthcheckLabel)
 					wf.Labels = newLabels
 				} else {
-					// TODO move to labels package
-					wf.Labels[healthcheckLabel] = string(newSs)
+					wf.Labels = labels.AddLabel(wf.Labels, healthcheckLabel, string(newSs))
 				}
 
 				err := r.Update(ctx, &wf)
@@ -121,7 +120,6 @@ func (r *DataSetReconciler) handleHealthCheckUpdate(ctx context.Context, log log
 	if err := r.Get(ctx, dataSet.Spec.HealthCheck.GetNamespacedName(), &workflow); err != nil {
 		log.Error(err, "unable to fetch Workflow for DataSet")
 
-		// TODO extract dataset status updates into function
 		dataSet.Status.Healthy = api.Unknown
 		err = r.Status().Update(ctx, &dataSet)
 		if err != nil {
