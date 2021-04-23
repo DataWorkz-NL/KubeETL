@@ -61,7 +61,7 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				Namespace: wf.Namespace,
 			}
 			// If the workflow is not used as healthcheck for this DataSet, remove the DataSet from label
-			if dataSet.Spec.HealthCheck.GetNamespacedName() != key {
+			if dataSet.Spec.HealthCheck == nil || dataSet.Spec.HealthCheck.GetNamespacedName() != key {
 				val := labels.GetLabelValue(wf.Labels, healthcheckLabel)
 				ss := labels.StringSet(val)
 				newSs := ss.Remove(dataSet.Name)
