@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -50,7 +51,7 @@ var _ = BeforeSuite(func(done Done) {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases"), filepath.Join("testdata", "crd")},
 	}
 
 	var err error
@@ -61,6 +62,8 @@ var _ = BeforeSuite(func(done Done) {
 	err = apiv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = wfv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
 	// +kubebuilder:scaffold:scheme
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{

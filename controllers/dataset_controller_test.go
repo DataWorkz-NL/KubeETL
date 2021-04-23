@@ -7,6 +7,7 @@ import (
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -18,7 +19,11 @@ var _ = Describe("DataSetReconciler", func() {
 	const timeout = time.Second * 5
 	const interval = time.Second * 1
 	var wfKey types.NamespacedName
+	var argoWfKey types.NamespacedName
+	var argoWf wfv1.Workflow
 	BeforeEach(func() {
+		ctx := context.Background()
+
 		wfKey = types.NamespacedName{
 			Name:      "default-workflow",
 			Namespace: "default",
@@ -36,8 +41,22 @@ var _ = Describe("DataSetReconciler", func() {
 			Spec: wfSpec,
 		}
 
-		ctx := context.Background()
 		Expect(k8sClient.Create(ctx, &wf)).Should(Succeed())
+
+		argoWfKey = types.NamespacedName{
+			Name:      "default-argo-workflow",
+			Namespace: "default",
+		}
+		argoWfSpec := wfv1.WorkflowSpec{}
+
+		argoWf = wfv1.Workflow{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      argoWfKey.Name,
+				Namespace: argoWfKey.Namespace,
+			},
+			Spec: argoWfSpec,
+		}
+		Expect(k8sClient.Create(ctx, &argoWf)).Should(Succeed())
 	})
 
 	AfterEach(func() {
@@ -45,6 +64,9 @@ var _ = Describe("DataSetReconciler", func() {
 		ctx := context.Background()
 		Expect(k8sClient.Get(ctx, wfKey, &wf)).Should(Succeed())
 		Expect(k8sClient.Delete(ctx, &wf)).Should(Succeed())
+		var argoWf wfv1.Workflow
+		Expect(k8sClient.Get(ctx, argoWfKey, &argoWf)).Should(Succeed())
+		Expect(k8sClient.Delete(ctx, &argoWf)).Should(Succeed())
 	})
 
 	Context("DataSet with HealthCheck", func() {
@@ -115,7 +137,7 @@ var _ = Describe("DataSetReconciler", func() {
 
 			By("Setting the DataSet Healthcheck label on the WorkFlow")
 			Eventually(func() bool {
-				var res *api.Workflow
+				res := &api.Workflow{}
 				err := k8sClient.Get(ctx, wfKey, res)
 				if err != nil {
 					return false
@@ -123,6 +145,28 @@ var _ = Describe("DataSetReconciler", func() {
 
 				return labels.HasLabel(res.Labels, healthcheckLabel)
 			}, timeout, interval)
+
+			By("Updating the status if the workflow executed")
+			// First fake Workflow controller behaviour
+			argoWf.Status.Phase = wfv1.NodeFailed
+			Expect(k8sClient.Update(ctx, &argoWf)).Should(Succeed())
+			wf := &api.Workflow{}
+			Expect(k8sClient.Get(ctx, wfKey, wf)).Should(Succeed())
+			wf.Status.ArgoWorkflowRef = &corev1.ObjectReference{
+				Name:      argoWfKey.Name,
+				Namespace: argoWfKey.Namespace,
+			}
+			Expect(k8sClient.Update(ctx, wf)).Should(Succeed())
+
+			Eventually(func() bool {
+				res := &api.DataSet{}
+				err := k8sClient.Get(ctx, key, res)
+				if err != nil {
+					return false
+				}
+
+				return res.Status.Healthy == api.Unhealthy
+			}, timeout, interval).Should(BeTrue())
 
 			By("Cleaning up the label if the DataSet no longer has a healthcheck")
 			ds := &api.DataSet{}
