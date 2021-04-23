@@ -156,7 +156,7 @@ var _ = Describe("DataSetReconciler", func() {
 				Name:      argoWfKey.Name,
 				Namespace: argoWfKey.Namespace,
 			}
-			Expect(k8sClient.Update(ctx, wf)).Should(Succeed())
+			Expect(k8sClient.Status().Update(ctx, wf)).Should(Succeed())
 
 			Eventually(func() bool {
 				res := &api.DataSet{}
