@@ -73,6 +73,7 @@ type DataSetStatus struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // DataSet is the Schema for the datasets API
 type DataSet struct {
