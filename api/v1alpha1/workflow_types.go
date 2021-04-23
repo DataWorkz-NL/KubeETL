@@ -51,7 +51,7 @@ type WorkflowSpec struct {
 	// InjectInto contains the templates for which KubeETL should inject
 	// the InjectableValues. This should refer to the defined Templates of the
 	// WorkflowSpec.
-	// +required
+	// +optional
 	InjectInto []TemplateRef `json:"injectInto"`
 }
 
