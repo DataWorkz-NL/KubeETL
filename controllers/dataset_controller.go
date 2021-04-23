@@ -44,11 +44,42 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	// Remove any labels of workflows not currently used as healthcheck
+	if err := r.handleWorkflowLabelCleanup(ctx, log, dataSet); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if dataSet.Spec.HealthCheck != nil {
+		if err := r.handleHealthCheckUpdate(ctx, log, dataSet); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	return ctrl.Result{}, nil
+}
+
+func (r *DataSetReconciler) getArgoWorkflowStatus(ctx context.Context, wfr *corev1.ObjectReference) (bool, error) {
+	if wfr != nil {
+		var argoWorkflow wfv1.Workflow
+		key := types.NamespacedName{
+			Name:      wfr.Name,
+			Namespace: wfr.Namespace,
+		}
+		if err := r.Get(ctx, key, &argoWorkflow); err != nil {
+			return false, fmt.Errorf("unable to fetch ArgoWorkflow for DataSet")
+		}
+
+		return argoWorkflow.Status.Failed(), nil
+	}
+
+	return false, fmt.Errorf("No ArgoWorkflow created for Workflow")
+}
+
+func (r *DataSetReconciler) handleWorkflowLabelCleanup(ctx context.Context, log logr.Logger, dataSet api.DataSet) error {
 	var wfl api.WorkflowList
 	requirement, err := k8slabels.NewRequirement(healthcheckLabel, selection.Exists, []string{})
 	if err != nil {
 		log.Error(err, "unable to create label selector for workflows")
-		return ctrl.Result{}, err
+		return err
 	}
 
 	labelSelector := k8slabels.NewSelector().Add(*requirement)
@@ -76,37 +107,13 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				err := r.Update(ctx, &wf)
 				if err != nil {
 					log.Error(err, "unable to update Workflow labels")
-					return ctrl.Result{}, err
+					return err
 				}
 			}
 		}
 	}
 
-	if dataSet.Spec.HealthCheck != nil {
-		err := r.handleHealthCheckUpdate(ctx, log, dataSet)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-	}
-
-	return ctrl.Result{}, nil
-}
-
-func (r *DataSetReconciler) getArgoWorkflowStatus(ctx context.Context, wfr *corev1.ObjectReference) (bool, error) {
-	if wfr != nil {
-		var argoWorkflow wfv1.Workflow
-		key := types.NamespacedName{
-			Name:      wfr.Name,
-			Namespace: wfr.Namespace,
-		}
-		if err := r.Get(ctx, key, &argoWorkflow); err != nil {
-			return false, fmt.Errorf("unable to fetch ArgoWorkflow for DataSet")
-		}
-
-		return argoWorkflow.Status.Failed(), nil
-	}
-
-	return false, fmt.Errorf("No ArgoWorkflow created for Workflow")
+	return nil
 }
 
 func (r *DataSetReconciler) handleHealthCheckUpdate(ctx context.Context, log logr.Logger, dataSet api.DataSet) error {
