@@ -15,7 +15,7 @@ import (
 )
 
 var _ = Describe("DataSetReconciler", func() {
-	const timeout = time.Second * 30
+	const timeout = time.Second * 5
 	const interval = time.Second * 1
 	var wfKey types.NamespacedName
 	BeforeEach(func() {
