@@ -82,47 +82,10 @@ func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 	}
 
-	// TODO refactor this piece of nested crap
 	if dataSet.Spec.HealthCheck != nil {
-		var workflow api.Workflow
-		if err := r.Get(ctx, dataSet.Spec.HealthCheck.GetNamespacedName(), &workflow); err != nil {
-			log.Error(err, "unable to fetch Workflow for DataSet")
-
-			// TODO extract dataset status updates into function
-			dataSet.Status.Healthy = api.Unknown
-			err = r.Status().Update(ctx, &dataSet)
-			if err != nil {
-				log.Error(err, "unable to update DataSet status")
-				return ctrl.Result{}, err
-			}
-		} else {
-			// TODO check for label vale of healtcheck label, set it if it isn't there
-			// otherwise check if the value contains a reference to this dataset and update it
-			// if it doesn't
-			val := labels.GetLabelValue(workflow.Labels, healthcheckLabel)
-			if val == "" {
-				workflow.Labels = labels.AddLabel(workflow.Labels, healthcheckLabel, dataSet.Name)
-				err := r.Update(ctx, &workflow)
-				if err != nil {
-					log.Error(err, "unable to update Workflow labels")
-					return ctrl.Result{}, err
-				}
-			}
-
-			failed, err := r.getArgoWorkflowStatus(ctx, workflow.Status.ArgoWorkflowRef)
-			if err != nil {
-				dataSet.Status.Healthy = api.Unknown
-			} else if failed {
-				dataSet.Status.Healthy = api.Unhealthy
-			} else {
-				dataSet.Status.Healthy = api.Healthy
-			}
-
-			err = r.Status().Update(ctx, &dataSet)
-			if err != nil {
-				log.Error(err, "unable to update DataSet status")
-				return ctrl.Result{}, err
-			}
+		err := r.handleHealthCheckUpdate(ctx, log, dataSet)
+		if err != nil {
+			return ctrl.Result{}, err
 		}
 	}
 
@@ -144,6 +107,49 @@ func (r *DataSetReconciler) getArgoWorkflowStatus(ctx context.Context, wfr *core
 	}
 
 	return false, fmt.Errorf("No ArgoWorkflow created for Workflow")
+}
+
+func (r *DataSetReconciler) handleHealthCheckUpdate(ctx context.Context, log logr.Logger, dataSet api.DataSet) error {
+	var workflow api.Workflow
+	if err := r.Get(ctx, dataSet.Spec.HealthCheck.GetNamespacedName(), &workflow); err != nil {
+		log.Error(err, "unable to fetch Workflow for DataSet")
+
+		// TODO extract dataset status updates into function
+		dataSet.Status.Healthy = api.Unknown
+		err = r.Status().Update(ctx, &dataSet)
+		if err != nil {
+			log.Error(err, "unable to update DataSet status")
+			return err
+		}
+	} else {
+
+		val := labels.GetLabelValue(workflow.Labels, healthcheckLabel)
+		if val == "" {
+			workflow.Labels = labels.AddLabel(workflow.Labels, healthcheckLabel, dataSet.Name)
+			err := r.Update(ctx, &workflow)
+			if err != nil {
+				log.Error(err, "unable to update Workflow labels")
+				return err
+			}
+		}
+
+		failed, err := r.getArgoWorkflowStatus(ctx, workflow.Status.ArgoWorkflowRef)
+		if err != nil {
+			dataSet.Status.Healthy = api.Unknown
+		} else if failed {
+			dataSet.Status.Healthy = api.Unhealthy
+		} else {
+			dataSet.Status.Healthy = api.Healthy
+		}
+
+		err = r.Status().Update(ctx, &dataSet)
+		if err != nil {
+			log.Error(err, "unable to update DataSet status")
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
