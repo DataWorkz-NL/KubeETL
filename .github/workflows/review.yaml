@@ -1,0 +1,19 @@
+name: review
+
+on: [pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout source
+        uses: actions/checkout@v2
+
+      - name: setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "^1.16.0"
+
+      - name: build & test
+        run: make docker-build
+
