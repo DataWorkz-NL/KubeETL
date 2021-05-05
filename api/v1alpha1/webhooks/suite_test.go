@@ -1,6 +1,7 @@
 package webhooks
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -22,6 +23,10 @@ var k8sClient client.Client
 var testEnv *envtest.Environment
 
 func TestWebhooks(t *testing.T) {
+	if os.Getenv("SKIP_WEBHOOK_TESTS") == "true" {
+		t.Skip("Webhook tests are skipped")
+	}
+
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Webhooks Suite")
 }

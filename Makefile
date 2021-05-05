@@ -3,6 +3,7 @@
 IMG ?= controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
+SKIP_WEBHOOK_TESTS ?= true
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -15,7 +16,7 @@ all: manager
 
 # Run tests
 test: generate fmt vet manifests
-	go test ./... -coverprofile cover.out
+	SKIP_WEBHOOK_TESTS=$(SKIP_WEBHOOK_TESTS) && go test ./... -v -coverprofile cover.out
 
 # Build manager binary
 manager: generate fmt vet
