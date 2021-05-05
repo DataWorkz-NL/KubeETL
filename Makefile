@@ -16,7 +16,7 @@ all: manager
 
 # Run tests
 test: generate fmt vet manifests
-	SKIP_WEBHOOK_TESTS=$(SKIP_WEBHOOK_TESTS) && go test ./... -v -coverprofile cover.out
+	export SKIP_WEBHOOK_TESTS=$(SKIP_WEBHOOK_TESTS) && go test ./... -coverprofile cover.out
 
 # Build manager binary
 manager: generate fmt vet
