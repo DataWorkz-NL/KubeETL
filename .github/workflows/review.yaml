@@ -1,6 +1,12 @@
 name: review
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   validate:
@@ -20,6 +26,6 @@ jobs:
           version: 3.0.0
           
 
-      - name: build & test
-        run: make docker-build
+      - name: test
+        run: make test
 
