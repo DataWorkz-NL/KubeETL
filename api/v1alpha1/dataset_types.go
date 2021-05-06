@@ -36,7 +36,16 @@ type DataSetSpec struct {
 	// to fetch the DataSet from the connection, such as a file name
 	// or a table name.
 	// +optional
-	Metadata Credentials `json:"metadata,omitemepty"`
+	Metadata Credentials `json:"metadata,omitempty"`
+
+	// HealthCheck can be configured to perform a periodic health check on the data.
+	// E.g. this can be used to monitor the DataSet quality or the availability.
+	// HealthCheck is a WorkflowReference and the DataSet reconciler will use the
+	// latest workflow run as an indication of DataSet health.
+	// This allows users to define a workflow that performs e.g. a Data Quality check
+	// and fail the workflow when the Data Quality is below a user defined threshold.
+	// +optional
+	HealthCheck *WorkflowReference `json:"healthCheck,omitempty"`
 }
 
 type ConnectionFrom struct {
@@ -57,9 +66,14 @@ const (
 )
 
 // DataSetStatus defines the observed state of DataSet
-type DataSetStatus struct{}
+type DataSetStatus struct {
+	// Healthy indicates the status of the recent DataSet health check.
+	// +optional
+	Healthy HealthEnum `json:"healthy,omitempty"`
+}
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // DataSet is the Schema for the datasets API
 type DataSet struct {

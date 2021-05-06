@@ -28,6 +28,7 @@ import (
 
 	etlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	etlhooks "github.com/dataworkz/kubeetl/api/v1alpha1/webhooks"
+	"github.com/dataworkz/kubeetl/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -62,6 +63,13 @@ func main() {
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	if err = (&controllers.DataSetReconciler{
+		Client: mgr.GetClient(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "DataSet")
 		os.Exit(1)
 	}
 

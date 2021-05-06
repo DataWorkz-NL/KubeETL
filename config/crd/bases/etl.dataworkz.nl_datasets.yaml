@@ -45,6 +45,19 @@ spec:
                         type: boolean
                     type: object
                 type: object
+              healthCheck:
+                description: HealthCheck can be configured to perform a periodic health check on the data. E.g. this can be used to monitor the DataSet quality or the availability. HealthCheck is a WorkflowReference and the DataSet reconciler will use the latest workflow run as an indication of DataSet health. This allows users to define a workflow that performs e.g. a Data Quality check and fail the workflow when the Data Quality is below a user defined threshold.
+                properties:
+                  name:
+                    description: '`name` is the name of the workflow. Required'
+                    type: string
+                  namespace:
+                    description: '`namespace` is the namespace of the workflow. Required'
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
               metadata:
                 additionalProperties:
                   description: Value contains either a direct value or a value from a source
@@ -103,10 +116,20 @@ spec:
             type: object
           status:
             description: DataSetStatus defines the observed state of DataSet
+            properties:
+              healthy:
+                description: Healthy indicates the status of the recent DataSet health check.
+                enum:
+                - Healthy
+                - Unhealthy
+                - Unknown
+                type: string
             type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

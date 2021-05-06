@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	apiv1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type MetadataValidation struct {
@@ -78,4 +79,37 @@ type ValueSource struct {
 	// Selects a key of a secret in the pod's namespace
 	// +optional
 	SecretKeyRef *apiv1.SecretKeySelector `json:"secretKeyRef,omitempty" protobuf:"bytes,4,opt,name=secretKeyRef"`
+}
+
+// +kubebuilder:validation:Enum=Healthy;Unhealthy;Unknown
+type HealthEnum string
+
+const (
+	// Healthy indicates a successfull health check was performed.
+	Healthy HealthEnum = "Healthy"
+
+	// Unhealthy indicates the health check failed.
+	Unhealthy HealthEnum = "Unhealthy"
+
+	// Unknown indicates the status of the last health check is unknown.
+	// This status is also used if the controller is unaware of health check
+	// recently.
+	Unknown HealthEnum = "Unknown"
+)
+
+// WorkflowReference holds a reference to a v1alpha1.Workflow
+type WorkflowReference struct {
+	// `namespace` is the namespace of the workflow.
+	// Required
+	Namespace string `json:"namespace" protobuf:"bytes,1,opt,name=namespace"`
+	// `name` is the name of the workflow.
+	// Required
+	Name string `json:"name" protobuf:"bytes,2,opt,name=name"`
+}
+
+func (r *WorkflowReference) GetNamespacedName() types.NamespacedName {
+	return types.NamespacedName{
+		Name:      r.Name,
+		Namespace: r.Namespace,
+	}
 }

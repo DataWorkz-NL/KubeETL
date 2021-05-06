@@ -35,7 +35,7 @@ type Workflow struct {
 // ConnectionStatus defines the observed state of Workflow
 type WorkflowStatus struct {
 	// ArgoWorkflowRef is a reference to the Argo Workflow created for this Workflow
-	ArgoWorkflowRef corev1.ObjectReference `json:"argoWorkflowRef,omitempty"`
+	ArgoWorkflowRef *corev1.ObjectReference `json:"argoWorkflowRef,omitempty"`
 }
 
 // WorkflowSpec defines the desired state of Workflow
@@ -51,7 +51,7 @@ type WorkflowSpec struct {
 	// InjectInto contains the templates for which KubeETL should inject
 	// the InjectableValues. This should refer to the defined Templates of the
 	// WorkflowSpec.
-	// +required
+	// +optional
 	InjectInto []TemplateRef `json:"injectInto"`
 }
 
@@ -106,4 +106,8 @@ func (iv *InjectableValue) GetType() InjectableValueType {
 	default:
 		return ""
 	}
+}
+
+func init() {
+	SchemeBuilder.Register(&Workflow{}, &WorkflowList{})
 }
