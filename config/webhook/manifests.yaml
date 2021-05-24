@@ -26,3 +26,23 @@ webhooks:
     resources:
     - connections
   sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-v1alpha1-dataset
+  failurePolicy: Fail
+  name: dataset.dataworkz.nl
+  rules:
+  - apiGroups:
+    - etl.dataworkz.nl
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - datasets
+  sideEffects: None
