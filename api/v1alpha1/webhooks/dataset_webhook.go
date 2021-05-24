@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/dataworkz/kubeetl/api/v1alpha1"
-	// "github.com/dataworkz/kubeetl/api/v1alpha1/validation"
+	"github.com/dataworkz/kubeetl/api/v1alpha1/validation"
 	"github.com/dataworkz/kubeetl/listers"
 )
 
@@ -60,10 +60,10 @@ func (hook *datasetValidatorHook) Handle(ctx context.Context, req admission.Requ
 		return admission.Errored(http.StatusBadRequest, fmt.Errorf("Unknown DataSetType: %v", dtype))
 	}
 
-	// errs := validation.ValidateConnection(con, *dsType)
-	// if errs != nil {
-	// 	return admission.Errored(http.StatusBadRequest, errs.ToAggregate())
-	// }
+	errs := validation.ValidateDataSet(ds, *dsType)
+	if errs != nil {
+		return admission.Errored(http.StatusBadRequest, errs.ToAggregate())
+	}
 
 	return admission.Allowed("valid DataSet resource passed to the API")
 }
