@@ -1,9 +1,14 @@
 package v1alpha1
 
 import (
+	"strings"
+	"text/template"
+
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -92,10 +97,31 @@ type InjectableValue struct {
 	// Go template that will be rendered using the connection fields as data
 	// Example: mysql://{{.user}}:{{.password}}@{{.host}}:{{.port}}/{{.database}}
 	// +required
-	Content string `json:"content"`
+	Content ContentTemplate `json:"content"`
+}
+
+type ContentTemplate string
+
+func (ct ContentTemplate) Render(data interface{}) (string, error) {
+	tmpl, err := template.New("content").Parse(string(ct))
+	if err != nil {
+		return "", err
+	}
+
+	b := &strings.Builder{}
+	err = tmpl.Execute(b, data)
+	if err != nil {
+		return "", err
+	}
+
+	return b.String(), nil
 }
 
 type InjectableValueType string
+
+func (wf *Workflow) SecretName() types.NamespacedName {
+	return client.ObjectKeyFromObject(wf)
+}
 
 func (iv *InjectableValue) GetType() InjectableValueType {
 	switch {
