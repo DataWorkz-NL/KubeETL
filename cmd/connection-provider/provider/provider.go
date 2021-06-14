@@ -56,6 +56,7 @@ func (cp *connectionProvider) ProvideWorkflowSecret(workflowName, workflowNamesp
 // populateSecret renders the template for each InjectableValue in a Workflow and adds the result to the provided secret
 // using the name of the InjectableValue as a key
 func (cp *connectionProvider) populateSecret(ctx context.Context, secret *corev1.Secret, wf *v1alpha1.Workflow) error {
+	secret.StringData = make(map[string]string)
 	for _, iv := range wf.Spec.InjectableValues {
 		conn, err := cp.connectionLister.Find(ctx, wf.Namespace, iv.ConnectionRef.Name)
 		if err != nil {
