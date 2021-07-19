@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+set -euf -o pipefail
+
+kind create cluster --wait 200s
+
+kubectl cluster-info --context kind-kind
+kubectl config use-context kind-kind
 
 helm repo add jetstack https://charts.jetstack.io && helm repo update
 
