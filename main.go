@@ -26,6 +26,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	etldataworkznlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	etlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	etlhooks "github.com/dataworkz/kubeetl/api/v1alpha1/webhooks"
 	"github.com/dataworkz/kubeetl/controllers"
@@ -41,6 +42,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = etlv1alpha1.AddToScheme(scheme)
+	_ = etldataworkznlv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -76,6 +78,14 @@ func main() {
 	err = etlhooks.SetupValidatingConnectionWebhookWithManager(mgr)
 	if err != nil {
 		setupLog.Error(err, "unable to start webhook")
+		os.Exit(1)
+	}
+	if err = (&controllers.WorkflowReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Workflow"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Workflow")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

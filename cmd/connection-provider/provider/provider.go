@@ -35,7 +35,7 @@ func (cp *connectionProvider) ProvideWorkflowSecret(workflowName, workflowNamesp
 	}
 
 	secret := corev1.Secret{}
-	err = cp.client.Get(ctx, wf.SecretName(), &secret)
+	err = cp.client.Get(ctx, wf.ConnectionSecretName(), &secret)
 	if err != nil {
 		return err
 	}

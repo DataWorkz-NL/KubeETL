@@ -59,6 +59,7 @@ func (cr *credentialReader) readSecretKey(ctx context.Context, selector *corev1.
 		return "", err
 	}
 
+	// TODO: decode base64
 	data, ok := secret.Data[selector.Key]
 	if !ok {
 		return "", fmt.Errorf("key %s not found in secret %s", selector.Key, selector.Name)

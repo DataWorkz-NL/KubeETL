@@ -25,6 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	apiv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
+	etldataworkznlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -62,6 +63,9 @@ var _ = BeforeSuite(func(done Done) {
 
 	err = wfv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
+	err = etldataworkznlv1alpha1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	// +kubebuilder:scaffold:scheme
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
