@@ -1,6 +1,8 @@
 package v1alpha1
 
 import (
+	"crypto/md5"
+	"fmt"
 	"strings"
 	"text/template"
 
@@ -8,7 +10,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -58,6 +59,11 @@ type WorkflowSpec struct {
 	// WorkflowSpec.
 	// +optional
 	InjectInto []TemplateRef `json:"injectInto"`
+
+	// InjectionServiceAccount is the name of the service account used to inject connections.
+	// This defaults to the Workflow service account.
+	// +optional
+	InjectionServiceAccount string `json:"injectionServiceAccount"`
 }
 
 type InjectableValues []InjectableValue
@@ -119,8 +125,22 @@ func (ct ContentTemplate) Render(data interface{}) (string, error) {
 
 type InjectableValueType string
 
-func (wf *Workflow) SecretName() types.NamespacedName {
-	return client.ObjectKeyFromObject(wf)
+func (wf *Workflow) ConnectionSecretName() types.NamespacedName {
+	return types.NamespacedName{
+		Name:      wf.NameWithHash(),
+		Namespace: wf.Namespace,
+	}
+}
+
+func (wf *Workflow) NameWithHash() string {
+	m := md5.New()
+	h := m.Sum([]byte(wf.Name))
+
+	return fmt.Sprintf("%s-%s", wf.Name, h)
+}
+
+func (wf *Workflow) ConnectionVolumeName() string {
+	return wf.NameWithHash()
 }
 
 func (iv *InjectableValue) GetType() InjectableValueType {
@@ -132,6 +152,15 @@ func (iv *InjectableValue) GetType() InjectableValueType {
 	default:
 		return ""
 	}
+}
+
+func (wf *Workflow) GetInjectableValueByName(name string) (*InjectableValue, error) {
+	for i, iv := range wf.Spec.InjectableValues {
+		if iv.Name == name {
+			return &wf.Spec.InjectableValues[i], nil
+		}
+	}
+	return nil, fmt.Errorf("no InjectableValue found with name %s", name)
 }
 
 func init() {

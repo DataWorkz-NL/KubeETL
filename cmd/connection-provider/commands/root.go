@@ -60,7 +60,8 @@ func NewRootCommand() *cobra.Command {
 
 	p := provider.NewConnectionProvider(client)
 
-	p.ProvideWorkflowSecret(workflow, namespace)
+	err = p.ProvideWorkflowSecret(workflow, namespace)
+	er(err)
 
 	return command
 }
