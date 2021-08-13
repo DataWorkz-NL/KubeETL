@@ -1,6 +1,6 @@
 module github.com/dataworkz/kubeetl
 
-go 1.15
+go 1.16
 
 require (
 	github.com/argoproj/argo/v2 v2.12.10
@@ -12,5 +12,6 @@ require (
 	k8s.io/client-go v0.20.2
 	k8s.io/utils v0.0.0-20210111153108-fddb29f9d009
 	sigs.k8s.io/controller-runtime v0.8.1
+	sigs.k8s.io/controller-tools v0.5.0 // indirect
 	sigs.k8s.io/yaml v1.2.0
 )
