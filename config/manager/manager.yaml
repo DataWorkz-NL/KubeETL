@@ -25,9 +25,7 @@ spec:
       containers:
       - command:
         - /manager
-        args:
-        - --enable-leader-election
-        image: controller:latest
+        image: blokje5/kubeetl
         name: manager
         resources:
           limits:

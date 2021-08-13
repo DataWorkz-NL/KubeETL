@@ -32,6 +32,10 @@ const (
 	healthcheckLabel = "etl.dataworkz.nl/healthcheck"
 )
 
+// +kubebuilder:rbac:groups=etl.dataworkz.nl,resources=datasets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=etl.dataworkz.nl,resources=datasets/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=etl.dataworkz.nl,resources=workflows,verbs=get;list;watch;create;update;patch;delete
+
 func (r *DataSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("dataset", req.NamespacedName)
 

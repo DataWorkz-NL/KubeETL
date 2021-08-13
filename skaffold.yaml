@@ -1,0 +1,9 @@
+apiVersion: skaffold/v1beta9
+kind: Config
+build:
+  artifacts:
+  - image: blokje5/kubeetl
+  local: {}
+deploy:
+  kustomize:
+    path: config/default

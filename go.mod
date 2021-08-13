@@ -1,6 +1,6 @@
 module github.com/dataworkz/kubeetl
 
-go 1.13
+go 1.15
 
 require (
 	github.com/argoproj/argo/v2 v2.12.10
