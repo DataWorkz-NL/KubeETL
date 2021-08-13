@@ -74,6 +74,9 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	var awf wfv1.Workflow
 	_, err = ctrl.CreateOrUpdate(ctx, r.Client, &awf, func() error { return r.updateWorkflow(&workflow, &awf) })
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("error upserting argo workflow: %w", err)
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -118,15 +121,15 @@ func (r *WorkflowReconciler) updateWorkflow(workflow *v1alpha1.Workflow, awf *wf
 		Steps: []wfv1.ParallelSteps{
 			wfv1.ParallelSteps{
 				Steps: []wfv1.WorkflowStep{
-					{
+					wfv1.WorkflowStep{
 						Name:     injectTmpl.Name,
 						Template: injectTmpl.Name,
 					},
 				},
 			},
 			wfv1.ParallelSteps{
-				[]wfv1.WorkflowStep{
-					{
+				Steps: []wfv1.WorkflowStep{
+					wfv1.WorkflowStep{
 						Name:     awf.Spec.Entrypoint,
 						Template: awf.Spec.Entrypoint,
 					},
@@ -228,20 +231,20 @@ func injectContainer(container *corev1.Container, ic *injectionContext) error {
 					SecretKeyRef: &sks,
 				},
 			}
-			addEnvVar(container.Env, ev)
+			container.Env = addEnvVar(container.Env, ev)
 		case v1alpha1.InjectableValueTypeFile:
 			vm := corev1.VolumeMount{
 				MountPath: iv.MountPath,
 				Name:      ic.wf.Name,
 				SubPath:   iv.Name,
 			}
-			addVolumeMount(container.VolumeMounts, vm)
+			container.VolumeMounts = addVolumeMount(container.VolumeMounts, vm)
 		}
 	}
 	return nil
 }
 
-func addEnvVar(vars []corev1.EnvVar, ev corev1.EnvVar) {
+func addEnvVar(vars []corev1.EnvVar, ev corev1.EnvVar) []corev1.EnvVar {
 	var found bool
 	for _, e := range vars {
 		if e.Name == ev.Name {
@@ -251,9 +254,10 @@ func addEnvVar(vars []corev1.EnvVar, ev corev1.EnvVar) {
 	if !found {
 		vars = append(vars, ev)
 	}
+	return vars
 }
 
-func addVolumeMount(mounts []corev1.VolumeMount, vm corev1.VolumeMount) {
+func addVolumeMount(mounts []corev1.VolumeMount, vm corev1.VolumeMount) []corev1.VolumeMount {
 	var found bool
 	for _, v := range mounts {
 		if v.Name == vm.Name {
@@ -263,6 +267,7 @@ func addVolumeMount(mounts []corev1.VolumeMount, vm corev1.VolumeMount) {
 	if !found {
 		mounts = append(mounts, vm)
 	}
+	return mounts
 }
 
 func injectDAG(template *wfv1.Template, ic *injectionContext) error {

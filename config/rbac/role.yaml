@@ -38,3 +38,11 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - etl.dataworkz.nl
+  resources:
+  - workflows/status
+  verbs:
+  - get
+  - patch
+  - update
