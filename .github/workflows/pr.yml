@@ -20,6 +20,7 @@ jobs:
           SCAN_AUTO_BUILD: true
         with:
           output: reports
+          type: "credscan,go,depscan,yaml"
       - name: Upload scan reports
         uses: actions/upload-artifact@v1.0.0
         with:
