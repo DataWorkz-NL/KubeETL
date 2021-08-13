@@ -3,6 +3,7 @@
 IMG ?= controller:latest
 # CRD Options
 CRD_OPTIONS ?= "crd"
+KUBEBUILDER_ASSETS_DIR ?= "/usr/local/kubebuilder/bin"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -15,6 +16,7 @@ all: manager
 
 # Run tests
 test: generate fmt vet manifests
+	export KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS_DIR)
 	go test -race ./... -coverprofile cover.out
 
 # Build manager binary

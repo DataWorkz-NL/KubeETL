@@ -64,7 +64,6 @@ var _ = Describe("DataSetReconciler", func() {
 		ctx := context.Background()
 		Expect(k8sClient.Get(ctx, wfKey, &wf)).Should(Succeed())
 		Expect(k8sClient.Delete(ctx, &wf)).Should(Succeed())
-		var argoWf wfv1.Workflow
 		Expect(k8sClient.Get(ctx, argoWfKey, &argoWf)).Should(Succeed())
 		Expect(k8sClient.Delete(ctx, &argoWf)).Should(Succeed())
 	})
@@ -149,8 +148,8 @@ var _ = Describe("DataSetReconciler", func() {
 			By("Updating the status if the workflow executed")
 			// First fake Workflow controller behaviour
 			argoWf.Status.Phase = wfv1.NodeFailed
-			Expect(k8sClient.Update(ctx, &argoWf)).Should(Succeed())
 			wf := &api.Workflow{}
+			Expect(k8sClient.Update(ctx, &argoWf)).Should(Succeed())
 			Expect(k8sClient.Get(ctx, wfKey, wf)).Should(Succeed())
 			wf.Status.ArgoWorkflowRef = &corev1.ObjectReference{
 				Name:      argoWfKey.Name,
