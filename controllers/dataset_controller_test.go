@@ -2,17 +2,17 @@ package controllers
 
 import (
 	"context"
+	"github.com/dataworkz/kubeetl/labels"
+	corev1 "k8s.io/api/core/v1"
 	"time"
 
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
-	"github.com/dataworkz/kubeetl/labels"
 )
 
 var _ = Describe("DataSetReconciler", func() {
@@ -68,7 +68,7 @@ var _ = Describe("DataSetReconciler", func() {
 		Expect(k8sClient.Delete(ctx, &argoWf)).Should(Succeed())
 	})
 
-	Context("DataSet with HealthCheck", func() {
+	Context("DataSet with Unknown HealthCheck", func() {
 		It("Should set DataSet health to Unknown for a unknown Workflow", func() {
 			ctx := context.Background()
 			key := types.NamespacedName{
@@ -107,7 +107,9 @@ var _ = Describe("DataSetReconciler", func() {
 
 			Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
 		})
+	})
 
+	Context("Dataset with Known HealthCheck", func() {
 		It("Should use an existing Workflow as DataSet healthcheck indicator", func() {
 			ctx := context.Background()
 			key := types.NamespacedName{
