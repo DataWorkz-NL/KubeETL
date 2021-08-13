@@ -3,8 +3,7 @@ on:
   push:
     branches-ignore:
       - 'releases/**'
-    branches:
-      - "*"
+      - 'main'
 jobs:
   lint:
     name: linting
