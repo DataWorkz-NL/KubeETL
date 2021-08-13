@@ -136,7 +136,7 @@ func (wf *Workflow) NameWithHash() string {
 	m := md5.New()
 	h := m.Sum([]byte(wf.Name))
 
-	return fmt.Sprintf("%s-%s", wf.Name, h)
+	return fmt.Sprintf("%s-%x", wf.Name, h)
 }
 
 func (wf *Workflow) ConnectionVolumeName() string {

@@ -1,0 +1,28 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - workflows
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - workflows/status
+  verbs:
+  - get
+  - patch
+  - update
