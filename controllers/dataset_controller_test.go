@@ -135,7 +135,7 @@ var _ = Describe("DataSetReconciler", func() {
 			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
 
 			By("Setting the DataSet Healthcheck label on the WorkFlow")
-			Eventually(func() bool {
+			Consistently(func() bool {
 				res := &api.Workflow{}
 				err := k8sClient.Get(ctx, wfKey, res)
 				if err != nil {
