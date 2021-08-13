@@ -6,6 +6,8 @@ kind create cluster --wait 200s
 kubectl cluster-info --context kind-kind
 kubectl config use-context kind-kind
 
+kubectl create namespace kubeetl
+
 helm repo add jetstack https://charts.jetstack.io && helm repo update
 
 helm install \
