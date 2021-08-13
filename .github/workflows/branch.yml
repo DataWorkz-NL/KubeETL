@@ -19,5 +19,13 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           version: v1.29
-      - name: test
+  test:
+    name: testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Kubebuilder
+        uses: RyanSiu1995/kubebuilder-action@v1.2
+        with:
+          version: 2.3.1
+      - name: Run Tests
         run: make test
