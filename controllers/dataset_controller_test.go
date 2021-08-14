@@ -2,17 +2,17 @@ package controllers
 
 import (
 	"context"
+	"github.com/dataworkz/kubeetl/labels"
+	corev1 "k8s.io/api/core/v1"
 	"time"
 
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
-	"github.com/dataworkz/kubeetl/labels"
 )
 
 var _ = Describe("DataSetReconciler", func() {
@@ -21,6 +21,7 @@ var _ = Describe("DataSetReconciler", func() {
 	var wfKey types.NamespacedName
 	var argoWfKey types.NamespacedName
 	var argoWf wfv1.Workflow
+
 	BeforeEach(func() {
 		ctx := context.Background()
 
@@ -64,12 +65,11 @@ var _ = Describe("DataSetReconciler", func() {
 		ctx := context.Background()
 		Expect(k8sClient.Get(ctx, wfKey, &wf)).Should(Succeed())
 		Expect(k8sClient.Delete(ctx, &wf)).Should(Succeed())
-		var argoWf wfv1.Workflow
 		Expect(k8sClient.Get(ctx, argoWfKey, &argoWf)).Should(Succeed())
 		Expect(k8sClient.Delete(ctx, &argoWf)).Should(Succeed())
 	})
 
-	Context("DataSet with HealthCheck", func() {
+	Context("DataSet with Unknown HealthCheck", func() {
 		It("Should set DataSet health to Unknown for a unknown Workflow", func() {
 			ctx := context.Background()
 			key := types.NamespacedName{
@@ -108,7 +108,9 @@ var _ = Describe("DataSetReconciler", func() {
 
 			Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
 		})
+	})
 
+	Context("Dataset with Known HealthCheck", func() {
 		It("Should use an existing Workflow as DataSet healthcheck indicator", func() {
 			ctx := context.Background()
 			key := types.NamespacedName{
@@ -136,7 +138,7 @@ var _ = Describe("DataSetReconciler", func() {
 			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
 
 			By("Setting the DataSet Healthcheck label on the WorkFlow")
-			Eventually(func() bool {
+			EventuallyWithOffset(5, func() bool {
 				res := &api.Workflow{}
 				err := k8sClient.Get(ctx, wfKey, res)
 				if err != nil {
@@ -149,8 +151,8 @@ var _ = Describe("DataSetReconciler", func() {
 			By("Updating the status if the workflow executed")
 			// First fake Workflow controller behaviour
 			argoWf.Status.Phase = wfv1.NodeFailed
-			Expect(k8sClient.Update(ctx, &argoWf)).Should(Succeed())
 			wf := &api.Workflow{}
+			Expect(k8sClient.Update(ctx, &argoWf)).Should(Succeed())
 			Expect(k8sClient.Get(ctx, wfKey, wf)).Should(Succeed())
 			wf.Status.ArgoWorkflowRef = &corev1.ObjectReference{
 				Name:      argoWfKey.Name,
@@ -171,22 +173,19 @@ var _ = Describe("DataSetReconciler", func() {
 			By("Cleaning up the label if the DataSet no longer has a healthcheck")
 			ds := &api.DataSet{}
 			Eventually(func() bool {
-				err := k8sClient.Get(ctx, key, ds)
-				if err != nil {
-					return false
+				if err := k8sClient.Get(ctx, key, ds); err == nil {
+					return true
 				}
-
-				return true
+				return false
 			}, timeout, interval).Should(BeTrue())
 
 			ds.Spec.HealthCheck = nil
 			Eventually(func() bool {
-				err := k8sClient.Update(ctx, ds)
-				if err != nil {
-					return false
+				if err := k8sClient.Update(ctx, ds); err == nil {
+					return true
 				}
 
-				return true
+				return false
 			}, timeout, interval).Should(BeTrue())
 
 			Eventually(func() bool {
