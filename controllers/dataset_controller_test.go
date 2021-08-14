@@ -138,7 +138,7 @@ var _ = Describe("DataSetReconciler", func() {
 			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
 
 			By("Setting the DataSet Healthcheck label on the WorkFlow")
-			EventuallyWithOffset(5, func() bool {
+			Eventually(func() bool {
 				res := &api.Workflow{}
 				err := k8sClient.Get(ctx, wfKey, res)
 				if err != nil {
@@ -153,7 +153,15 @@ var _ = Describe("DataSetReconciler", func() {
 			argoWf.Status.Phase = wfv1.NodeFailed
 			wf := &api.Workflow{}
 			Expect(k8sClient.Update(ctx, &argoWf)).Should(Succeed())
-			Expect(k8sClient.Get(ctx, wfKey, wf)).Should(Succeed())
+			
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, wfKey, wf)
+				if err != nil {
+					return false
+				}
+
+				return true
+			})
 			wf.Status.ArgoWorkflowRef = &corev1.ObjectReference{
 				Name:      argoWfKey.Name,
 				Namespace: argoWfKey.Namespace,
