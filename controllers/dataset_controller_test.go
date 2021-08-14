@@ -69,46 +69,46 @@ var _ = Describe("DataSetReconciler", func() {
 		Expect(k8sClient.Delete(ctx, &argoWf)).Should(Succeed())
 	})
 
-	Context("DataSet with Unknown HealthCheck", func() {
-		It("Should set DataSet health to Unknown for a unknown Workflow", func() {
-			ctx := context.Background()
-			key := types.NamespacedName{
-				Name:      "default-dataset",
-				Namespace: "default",
-			}
-
-			spec := api.DataSetSpec{
-				StorageType: api.PersistentType,
-				Type:        "MySQL DataSet",
-				HealthCheck: &api.WorkflowReference{
-					Namespace: "default",
-					Name:      "unknown-wf",
-				},
-			}
-
-			created := api.DataSet{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      key.Name,
-					Namespace: key.Namespace,
-				},
-				Spec: spec,
-			}
-
-			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
-
-			Eventually(func() bool {
-				res := &api.DataSet{}
-				err := k8sClient.Get(ctx, key, res)
-				if err != nil {
-					return false
-				}
-
-				return res.Status.Healthy == api.Unknown
-			}, timeout, interval).Should(BeTrue())
-
-			Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
-		})
-	})
+	//Context("DataSet with Unknown HealthCheck", func() {
+	//	It("Should set DataSet health to Unknown for a unknown Workflow", func() {
+	//		ctx := context.Background()
+	//		key := types.NamespacedName{
+	//			Name:      "default-dataset",
+	//			Namespace: "default",
+	//		}
+	//
+	//		spec := api.DataSetSpec{
+	//			StorageType: api.PersistentType,
+	//			Type:        "MySQL DataSet",
+	//			HealthCheck: &api.WorkflowReference{
+	//				Namespace: "default",
+	//				Name:      "unknown-wf",
+	//			},
+	//		}
+	//
+	//		created := api.DataSet{
+	//			ObjectMeta: metav1.ObjectMeta{
+	//				Name:      key.Name,
+	//				Namespace: key.Namespace,
+	//			},
+	//			Spec: spec,
+	//		}
+	//
+	//		Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
+	//
+	//		Eventually(func() bool {
+	//			res := &api.DataSet{}
+	//			err := k8sClient.Get(ctx, key, res)
+	//			if err != nil {
+	//				return false
+	//			}
+	//
+	//			return res.Status.Healthy == api.Unknown
+	//		}, timeout, interval).Should(BeTrue())
+	//
+	//		Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
+	//	})
+	//})
 
 	Context("Dataset with Known HealthCheck", func() {
 		It("Should use an existing Workflow as DataSet healthcheck indicator", func() {
