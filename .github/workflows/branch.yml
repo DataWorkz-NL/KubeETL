@@ -28,7 +28,7 @@ jobs:
       - name: Setup GO
         uses: actions/setup-go@v2
       - name: Setup Ginkgo
-        run: go get github.com/onsi/ginkgo/ginkgo
+        run: go install github.com/onsi/ginkgo/ginkgo
       - name: Add GOBIN to path
         run: go env GOPATH >> $GITHUB_PATH
       - name: Install Kubebuilder
