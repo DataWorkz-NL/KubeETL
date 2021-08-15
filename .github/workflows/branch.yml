@@ -27,6 +27,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup GO
         uses: actions/setup-go@v2
+      - name: Setup Ginkgo
+        run: go get github.com/onsi/ginkgo/ginkgo
       - name: Install Kubebuilder
         uses: RyanSiu1995/kubebuilder-action@v1.2
         with:
