@@ -30,7 +30,7 @@ jobs:
       - name: Setup Ginkgo
         run: go get github.com/onsi/ginkgo/ginkgo
       - name: Add GOBIN to path
-        run: echo "${HOME}/goroot/bin" >> $GITHUB_PATH
+        run: go env GOPATH >> $GITHUB_PATH
       - name: Install Kubebuilder
         uses: RyanSiu1995/kubebuilder-action@v1.2
         with:
