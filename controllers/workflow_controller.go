@@ -50,6 +50,8 @@ type WorkflowReconciler struct {
 
 func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("workflow", req.NamespacedName)
+	// FIXME: just testing
+	log.Info("reconciling")
 
 	var workflow v1alpha1.Workflow
 	if err := r.Get(ctx, req.NamespacedName, &workflow); err != nil {
@@ -67,12 +69,14 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		},
 	}
 
+	log.Info("creating connection secret", "name", csn.Name, "namespace", csn.Namespace)
+
 	_, err := ctrl.CreateOrUpdate(ctx, r.Client, &cs, func() error { return r.updateSecret(&workflow, &cs) })
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("error creating workflow connection secret: %w", err)
 	}
 
-	var awf wfv1.Workflow
+	awf := workflow.CreateArgoWorkflow()
 	_, err = ctrl.CreateOrUpdate(ctx, r.Client, &awf, func() error { return r.updateWorkflow(&workflow, &awf) })
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("error upserting argo workflow: %w", err)
@@ -153,7 +157,9 @@ func (r *WorkflowReconciler) updateWorkflow(workflow *v1alpha1.Workflow, awf *wf
 			// TODO: log?
 			return fmt.Errorf("InjectInto contains missing template: %s", ii.Name)
 		}
-		inject(template, ic)
+		if err := inject(template, ic); err != nil {
+			return err
+		}
 	}
 
 	if err := ctrl.SetControllerReference(workflow, awf, r.Scheme); err != nil {
@@ -165,16 +171,19 @@ func (r *WorkflowReconciler) updateWorkflow(workflow *v1alpha1.Workflow, awf *wf
 
 func newInjectionContext(awf *wfv1.Workflow, wf *v1alpha1.Workflow, injection v1alpha1.TemplateRef) (*injectionContext, error) {
 	ic := injectionContext{
+		wf:             wf,
 		awf:            awf,
 		templates:      awf.Spec.Templates,
 		injectedValues: make([]v1alpha1.InjectableValue, 0, len(injection.InjectedValues)),
 	}
 
-	iv, err := wf.GetInjectableValueByName(injection.Name)
-	if err != nil {
-		return nil, err
+	for _, v := range injection.InjectedValues {
+		iv, err := wf.GetInjectableValueByName(v)
+		if err != nil {
+			return nil, err
+		}
+		ic.injectedValues = append(ic.injectedValues, *iv)
 	}
-	ic.injectedValues = append(ic.injectedValues, *iv)
 	return &ic, nil
 }
 
@@ -199,13 +208,8 @@ func inject(template *wfv1.Template, ic *injectionContext) error {
 		return injectContainer(&template.Script.Container, ic)
 	case wfv1.TemplateTypeContainer:
 		return injectContainer(template.Container, ic)
-	case wfv1.TemplateTypeSuspend:
-	case wfv1.TemplateTypeResource:
-	case wfv1.TemplateTypeUnknown:
-		// error can't inject into (templatetype)
 	}
 
-	// if we're here, it means this is a regular template
 	return nil
 }
 
@@ -213,7 +217,7 @@ func (ic *injectionContext) getSecretKeyRef(injectableValue string) corev1.Secre
 	sks := corev1.SecretKeySelector{
 		// todo: get as workflow method?
 		LocalObjectReference: corev1.LocalObjectReference{
-			Name: ic.awf.Name,
+			Name: ic.wf.ConnectionSecretName().Name,
 		},
 		Key: injectableValue,
 	}
@@ -227,6 +231,7 @@ func injectContainer(container *corev1.Container, ic *injectionContext) error {
 		switch iv.GetType() {
 		case v1alpha1.InjectableValueTypeEnv:
 			ev := corev1.EnvVar{
+				Name: iv.EnvName,
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &sks,
 				},

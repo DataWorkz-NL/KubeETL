@@ -132,6 +132,16 @@ func (wf *Workflow) ConnectionSecretName() types.NamespacedName {
 	}
 }
 
+// CreateArgoWorkflow creates a new empty Argo Workflow with Name and Namespace configured
+func (wf *Workflow) CreateArgoWorkflow() wfv1.Workflow {
+	return wfv1.Workflow{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      wf.Name,
+			Namespace: wf.Namespace,
+		},
+	}
+}
+
 func (wf *Workflow) NameWithHash() string {
 	m := md5.New()
 	h := m.Sum([]byte(wf.Name))

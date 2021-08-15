@@ -27,16 +27,16 @@ var _ = Describe("WorkflowReconciler", func() {
 		ctx := context.Background()
 
 		connKey = types.NamespacedName{
-			Name:      "wf-connection",
+			Name:      "default-connection",
 			Namespace: "default",
 		}
 
 		secretRef = v1.LocalObjectReference{
-			Name: "wf-secret",
+			Name: "default-secret",
 		}
 
 		cmRef = v1.LocalObjectReference{
-			Name: "wf-cm",
+			Name: "default-cm",
 		}
 
 		connSpec := api.ConnectionSpec{
@@ -83,7 +83,7 @@ var _ = Describe("WorkflowReconciler", func() {
 		It("Should inject templates in a DAG", func() {
 			ctx := context.Background()
 			key := types.NamespacedName{
-				Name:      "wf-workflow",
+				Name:      "default-workflow",
 				Namespace: "default",
 			}
 
@@ -97,7 +97,7 @@ var _ = Describe("WorkflowReconciler", func() {
 				InjectableValues: api.InjectableValues{
 					api.InjectableValue{
 						Name:          "injectable-host",
-						ConnectionRef: v1.LocalObjectReference{Name: "wf-connection"},
+						ConnectionRef: v1.LocalObjectReference{Name: "default-connection"},
 						Content:       "{{.Host}}",
 						EnvName:       "HOST",
 					},
@@ -136,43 +136,77 @@ var _ = Describe("WorkflowReconciler", func() {
 			}
 
 			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
-			Eventually(func() bool {
-				res := &wfv1.Workflow{}
-				err := k8sClient.Get(ctx, key, res)
-				if err != nil {
-					return false
-				}
+
+			var res wfv1.Workflow
+			Eventually(func(g Gomega) {
+				g.Expect(k8sClient.Get(ctx, key, &res)).Should(Succeed())
 
 				foo := res.GetTemplateByName("foo")
-				if foo == nil {
-					return false
-				}
+				g.Expect(foo).ToNot(BeNil())
+				g.Expect(foo.Container).ToNot(BeNil())
 
-				bar := res.GetTemplateByName("foo")
-				if bar == nil {
-					return false
-				}
+				bar := res.GetTemplateByName("bar")
+				g.Expect(bar).ToNot(BeNil())
+				g.Expect(bar.Script).ToNot(BeNil())
 
 				containers := []v1.Container{*foo.Container, bar.Script.Container}
 				iv, err := created.GetInjectableValueByName("injectable-host")
-				if err != nil {
-					return false
-				}
+				g.Expect(err).ToNot(HaveOccurred())
 
 				for _, c := range containers {
 					isInjected := envContainsInjectableValue(c.Env, *iv, created.ConnectionSecretName().Name)
-					if !isInjected {
-						return false
-					}
+					g.Expect(isInjected).To(BeTrue())
 				}
-				return true
-			}, timeout, interval).Should(BeTrue())
+			}, timeout, interval).Should(Succeed())
 
-			Expect(k8sClient.Delete(ctx, &created)).Should(Succeed())
-
+			Expect(k8sClient.Delete(ctx, &created)).To(Succeed())
+			Expect(k8sClient.Delete(ctx, &res)).To(Succeed())
 		})
 
-		It("Should", func() {
+		It("Should add a volume to a workflow", func() {
+			ctx := context.Background()
+			key := types.NamespacedName{
+				Name:      "default-workflow",
+				Namespace: "default",
+			}
+			spec := api.WorkflowSpec{
+				InjectableValues: api.InjectableValues{
+					api.InjectableValue{
+						Name:          "injectable-host",
+						ConnectionRef: v1.LocalObjectReference{Name: "default-connection"},
+						Content:       "{{.Host}}",
+						EnvName:       "HOST",
+					},
+				},
+				ArgoWorkflowSpec: wfv1.WorkflowSpec{},
+			}
+			created := api.Workflow{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      key.Name,
+					Namespace: key.Namespace,
+				},
+				Spec: spec,
+			}
+
+			Expect(k8sClient.Create(ctx, &created)).To(Succeed())
+
+			var res wfv1.Workflow
+			Eventually(func(g Gomega) {
+				g.Expect(k8sClient.Get(ctx, key, &res)).To(Succeed())
+				g.Expect(len(res.Spec.Volumes)).To(Equal(1))
+				v := res.Spec.Volumes[0]
+				expected := v1.Volume{
+					Name: created.ConnectionVolumeName(),
+					VolumeSource: v1.VolumeSource{
+						Secret: &v1.SecretVolumeSource{
+							SecretName: created.ConnectionSecretName().Name,
+						},
+					},
+				}
+				g.Expect(v).To(Equal(expected))
+			}, timeout, interval).Should(Succeed())
+			Expect(k8sClient.Delete(ctx, &created)).To(Succeed())
+			Expect(k8sClient.Delete(ctx, &res)).To(Succeed())
 		})
 	})
 })
@@ -184,7 +218,7 @@ func envContainsInjectableValue(env []v1.EnvVar, iv api.InjectableValue, connect
 			return vf != nil &&
 				vf.SecretKeyRef != nil &&
 				vf.SecretKeyRef.Key == iv.Name &&
-				vf.SecretKeyRef.LocalObjectReference.Name == connectionSecretName
+				vf.SecretKeyRef.Name == connectionSecretName
 		}
 	}
 	return false

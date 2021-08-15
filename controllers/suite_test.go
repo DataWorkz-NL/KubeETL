@@ -24,7 +24,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	apiv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	etldataworkznlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
@@ -58,8 +57,8 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
-	err = apiv1alpha1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
+	// err = apiv1alpha1.AddToScheme(scheme.Scheme)
+	// Expect(err).NotTo(HaveOccurred())
 
 	err = wfv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
@@ -78,6 +77,12 @@ var _ = BeforeSuite(func(done Done) {
 	err = (&DataSetReconciler{
 		Client: k8sManager.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("DataSet"),
+		Scheme: k8sManager.GetScheme(),
+	}).SetupWithManager(k8sManager)
+
+	err = (&WorkflowReconciler{
+		Client: k8sManager.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Workflow"),
 		Scheme: k8sManager.GetScheme(),
 	}).SetupWithManager(k8sManager)
 
