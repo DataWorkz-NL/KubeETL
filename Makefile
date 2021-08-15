@@ -17,7 +17,7 @@ all: manager
 # Run tests
 test: generate fmt vet manifests
 	export KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS_DIR)
-	go test -race ./... -coverprofile cover.out
+	ginkgo -race ./... -coverprofile cover.out
 
 # Build manager binary
 manager: generate fmt vet
