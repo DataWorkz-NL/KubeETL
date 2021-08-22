@@ -65,7 +65,11 @@ func (cr *credentialReader) readSecretKey(ctx context.Context, selector *corev1.
 		return "", fmt.Errorf("key %s not found in secret %s", selector.Key, selector.Name)
 	}
 
-	return string(data), nil
+	var dec []byte
+	// discarding error, if this isn't base64 kubernetes is broken
+	_, _ = base64.StdEncoding.Decode(dec, data)
+
+	return string(dec), nil
 }
 
 func (cr *credentialReader) readConfigMapKey(ctx context.Context, selector *corev1.ConfigMapKeySelector) (string, error) {
