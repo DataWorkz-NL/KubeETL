@@ -43,7 +43,6 @@ type WorkflowReconciler struct {
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 	// ConnectionInjectionImage is the image of the container that will provide connection injections
-	// TODO: config
 	ConnectionInjectionImage string
 }
 
@@ -52,8 +51,6 @@ type WorkflowReconciler struct {
 
 func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("workflow", req.NamespacedName)
-	// FIXME: just testing
-	log.Info("reconciling")
 
 	var workflow v1alpha1.Workflow
 	if err := r.Get(ctx, req.NamespacedName, &workflow); err != nil {
