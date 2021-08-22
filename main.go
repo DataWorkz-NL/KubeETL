@@ -49,10 +49,12 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
+	var connectionInjectionImage string
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.StringVar(&connectionInjectionImage, "connection-injection-image", "dataworkz/kubeetl-injector", "The image that will provide connection injection functionality for Workflows")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
@@ -81,9 +83,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.WorkflowReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Workflow"),
-		Scheme: mgr.GetScheme(),
+		Client:                   mgr.GetClient(),
+		Log:                      ctrl.Log.WithName("controllers").WithName("Workflow"),
+		Scheme:                   mgr.GetScheme(),
+		ConnectionInjectionImage: connectionInjectionImage,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Workflow")
 		os.Exit(1)

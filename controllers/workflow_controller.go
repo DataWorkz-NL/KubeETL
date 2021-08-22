@@ -22,7 +22,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -43,6 +42,9 @@ type WorkflowReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+	// ConnectionInjectionImage is the image of the container that will provide connection injections
+	// TODO: config
+	ConnectionInjectionImage string
 }
 
 // +kubebuilder:rbac:groups=etl.dataworkz.nl.dataworkz.nl,resources=workflows,verbs=get;list;watch;create;update;patch;delete
@@ -104,14 +106,12 @@ func (r *WorkflowReconciler) updateWorkflow(workflow *v1alpha1.Workflow, awf *wf
 	}
 	awf.Spec.Volumes = append(awf.Spec.Volumes, v)
 
-	// awf.Spec.Entrypoint
-	// awf.Spec.Entrypoint
 	injectTmpl := wfv1.Template{
 		Name:               "run-injection",
 		Daemon:             pointer.BoolPtr(true),
 		ServiceAccountName: workflow.Spec.InjectionServiceAccount,
 		Container: &corev1.Container{
-			Image: os.Getenv("KETL_INJECTION_CONTAINER"),
+			Image: r.ConnectionInjectionImage,
 			Args: []string{
 				"--workflow",
 				awf.Name,
@@ -121,7 +121,9 @@ func (r *WorkflowReconciler) updateWorkflow(workflow *v1alpha1.Workflow, awf *wf
 		},
 	}
 
+	oldEntrypoint := awf.Spec.Entrypoint
 	steps := wfv1.Template{
+		Name: "entrypoint",
 		Steps: []wfv1.ParallelSteps{
 			wfv1.ParallelSteps{
 				Steps: []wfv1.WorkflowStep{
@@ -134,8 +136,8 @@ func (r *WorkflowReconciler) updateWorkflow(workflow *v1alpha1.Workflow, awf *wf
 			wfv1.ParallelSteps{
 				Steps: []wfv1.WorkflowStep{
 					wfv1.WorkflowStep{
-						Name:     awf.Spec.Entrypoint,
-						Template: awf.Spec.Entrypoint,
+						Name:     oldEntrypoint,
+						Template: oldEntrypoint,
 					},
 				},
 			},
@@ -240,7 +242,7 @@ func injectContainer(container *corev1.Container, ic *injectionContext) error {
 		case v1alpha1.InjectableValueTypeFile:
 			vm := corev1.VolumeMount{
 				MountPath: iv.MountPath,
-				Name:      ic.wf.Name,
+				Name:      ic.wf.ConnectionVolumeName(),
 				SubPath:   iv.Name,
 			}
 			container.VolumeMounts = addVolumeMount(container.VolumeMounts, vm)

@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"context"
+	"time"
+
 	"github.com/dataworkz/kubeetl/labels"
 	corev1 "k8s.io/api/core/v1"
-	"time"
 
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
@@ -15,7 +16,7 @@ import (
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
 )
 
-var _ = Describe("DataSetReconciler", func() {
+var _ = PDescribe("DataSetReconciler", func() {
 	const timeout = time.Second * 5
 	const interval = time.Second * 1
 	var wfKey types.NamespacedName

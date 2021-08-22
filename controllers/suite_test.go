@@ -13,15 +13,18 @@ limitations under the License.
 package controllers
 
 import (
+	"path/filepath"
+	"testing"
+
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	etldataworkznlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
@@ -36,13 +39,13 @@ var k8sClient client.Client
 var testEnv *envtest.Environment
 
 // TODO: commented because test are failing
-//func TestAPIs(t *testing.T) {
-//	RegisterFailHandler(Fail)
-//
-//	RunSpecsWithDefaultAndCustomReporters(t,
-//		"Controller Suite",
-//		[]Reporter{printer.NewlineReporter{}})
-//}
+func TestAPIs(t *testing.T) {
+	RegisterFailHandler(Fail)
+
+	RunSpecsWithDefaultAndCustomReporters(t,
+		"Controller Suite",
+		[]Reporter{printer.NewlineReporter{}})
+}
 
 var _ = BeforeSuite(func(done Done) {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter)))
@@ -81,9 +84,10 @@ var _ = BeforeSuite(func(done Done) {
 	}).SetupWithManager(k8sManager)
 
 	err = (&WorkflowReconciler{
-		Client: k8sManager.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Workflow"),
-		Scheme: k8sManager.GetScheme(),
+		Client:                   k8sManager.GetClient(),
+		Log:                      ctrl.Log.WithName("controllers").WithName("Workflow"),
+		Scheme:                   k8sManager.GetScheme(),
+		ConnectionInjectionImage: "kubeetl/connection-injector",
 	}).SetupWithManager(k8sManager)
 
 	go func() {

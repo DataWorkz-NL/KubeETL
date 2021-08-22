@@ -73,10 +73,103 @@ var _ = Describe("WorkflowReconciler", func() {
 	})
 
 	AfterEach(func() {
-		var wf api.Connection
+		var conn api.Connection
 		ctx := context.Background()
-		Expect(k8sClient.Get(ctx, connKey, &wf)).Should(Succeed())
-		Expect(k8sClient.Delete(ctx, &wf)).Should(Succeed())
+		Expect(k8sClient.Get(ctx, connKey, &conn)).Should(Succeed())
+		Expect(k8sClient.Delete(ctx, &conn)).Should(Succeed())
+	})
+
+	Context("Injections mounted as files", func() {
+		It("Should mount the secret key in templates", func() {
+			ctx := context.Background()
+			key := types.NamespacedName{
+				Name:      "default-workflow",
+				Namespace: "default",
+			}
+
+			mountPath := "/mnt/injections/host"
+
+			spec := api.WorkflowSpec{
+				InjectInto: []api.TemplateRef{
+					api.TemplateRef{
+						Name:           "containertemplate",
+						InjectedValues: []string{"injectable-host"},
+					},
+					api.TemplateRef{
+						Name:           "scripttemplate",
+						InjectedValues: []string{"injectable-host"},
+					},
+				},
+				InjectableValues: api.InjectableValues{
+					api.InjectableValue{
+						Name:          "injectable-host",
+						ConnectionRef: v1.LocalObjectReference{Name: "default-connection"},
+						Content:       "{{.Host}}",
+						MountPath:     mountPath,
+					},
+				},
+				ArgoWorkflowSpec: wfv1.WorkflowSpec{
+					Templates: []wfv1.Template{
+						wfv1.Template{
+							Name:      "containertemplate",
+							Container: &v1.Container{},
+						},
+						wfv1.Template{
+							Name: "scripttemplate",
+							Script: &wfv1.ScriptTemplate{
+								Container: v1.Container{},
+							},
+						},
+					},
+				},
+			}
+
+			created := api.Workflow{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      key.Name,
+					Namespace: key.Namespace,
+				},
+				Spec: spec,
+			}
+
+			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
+
+			var res wfv1.Workflow
+			Eventually(func(g Gomega) {
+				g.Expect(k8sClient.Get(ctx, key, &res)).Should(Succeed())
+
+				script := res.GetTemplateByName("scripttemplate")
+				g.Expect(script).ToNot(BeNil())
+				g.Expect(script.Script).ToNot(BeNil())
+
+				container := res.GetTemplateByName("containertemplate")
+				g.Expect(container).ToNot(BeNil())
+				g.Expect(container.Container).ToNot(BeNil())
+
+				iv, err := created.GetInjectableValueByName("injectable-host")
+				g.Expect(err).ToNot(HaveOccurred())
+
+				containers := []v1.Container{*container.Container, script.Script.Container}
+
+				isInjected := func(container v1.Container) bool {
+					for _, m := range container.VolumeMounts {
+						if m.Name == created.ConnectionVolumeName() &&
+							m.MountPath == iv.MountPath &&
+							m.SubPath == iv.Name {
+							return true
+						}
+					}
+					return false
+				}
+
+				for _, c := range containers {
+					g.Expect(isInjected(c)).To(BeTrue())
+				}
+			}, timeout, interval).Should(Succeed())
+
+			Expect(k8sClient.Delete(ctx, &created)).To(Succeed())
+			Expect(k8sClient.Delete(ctx, &res)).To(Succeed())
+		})
 	})
 
 	Context("Workflow with injections", func() {
@@ -204,6 +297,48 @@ var _ = Describe("WorkflowReconciler", func() {
 					},
 				}
 				g.Expect(v).To(Equal(expected))
+			}, timeout, interval).Should(Succeed())
+			Expect(k8sClient.Delete(ctx, &created)).To(Succeed())
+			Expect(k8sClient.Delete(ctx, &res)).To(Succeed())
+		})
+
+		It("Should a connection injection setup task to a workflow", func() {
+			ctx := context.Background()
+			key := types.NamespacedName{
+				Name:      "default-workflow",
+				Namespace: "default",
+			}
+			spec := api.WorkflowSpec{
+				InjectableValues: api.InjectableValues{
+					api.InjectableValue{
+						Name:          "injectable-host",
+						ConnectionRef: v1.LocalObjectReference{Name: "default-connection"},
+						Content:       "{{.Host}}",
+						EnvName:       "HOST",
+					},
+				},
+				ArgoWorkflowSpec: wfv1.WorkflowSpec{},
+			}
+			created := api.Workflow{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      key.Name,
+					Namespace: key.Namespace,
+				},
+				Spec: spec,
+			}
+
+			Expect(k8sClient.Create(ctx, &created)).To(Succeed())
+
+			var res wfv1.Workflow
+			Eventually(func(g Gomega) {
+				g.Expect(k8sClient.Get(ctx, key, &res)).To(Succeed())
+				g.Expect(res.Spec.Entrypoint).To(Equal("entrypoint"))
+				ep := res.GetTemplateByName(res.Spec.Entrypoint)
+				g.Expect(ep).ToNot(BeNil())
+				g.Expect(ep.GetType()).To(Equal(wfv1.TemplateTypeSteps))
+
+				g.Expect(len(ep.Steps)).To(Equal(2))
+				g.Expect(ep.Steps[0].Steps[0].Name).To(Equal("run-injection"))
 			}, timeout, interval).Should(Succeed())
 			Expect(k8sClient.Delete(ctx, &created)).To(Succeed())
 			Expect(k8sClient.Delete(ctx, &res)).To(Succeed())
