@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 
