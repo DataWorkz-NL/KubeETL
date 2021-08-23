@@ -157,11 +157,7 @@ var _ = Describe("DataSetReconciler", func() {
 
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, wfKey, wf)
-				if err != nil {
-					return false
-				}
-
-				return true
+				return err == nil
 			}).Should(BeTrue())
 			wf.Status.ArgoWorkflowRef = &corev1.ObjectReference{
 				Name:      argoWfKey.Name,
