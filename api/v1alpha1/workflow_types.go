@@ -1,9 +1,9 @@
 package v1alpha1
 
 import (
+	"bytes"
 	"crypto/md5"
 	"fmt"
-	"strings"
 	"text/template"
 
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
@@ -109,18 +109,20 @@ type InjectableValue struct {
 type ContentTemplate string
 
 func (ct ContentTemplate) Render(data interface{}) (string, error) {
-	tmpl, err := template.New("content").Parse(string(ct))
+	tmpl, err := template.New("content").
+		Option("missingkey=error").
+		Parse(string(ct))
 	if err != nil {
 		return "", err
 	}
 
-	b := &strings.Builder{}
-	err = tmpl.Execute(b, data)
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, data)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error rendering template: %w", err)
 	}
 
-	return b.String(), nil
+	return buf.String(), nil
 }
 
 type InjectableValueType string

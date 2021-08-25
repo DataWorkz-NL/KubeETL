@@ -1,0 +1,47 @@
+package v1alpha1
+
+import (
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+)
+
+var _ = Describe("ContentTemplate", func() {
+	Context("Rendering a valid template", func() {
+		var ct ContentTemplate
+
+		BeforeEach(func() {
+			ct = "{{.Value1}} {{.Value2}}"
+		})
+
+		It("Should fail if templated keys are missing", func() {
+			data := map[string]interface{}{
+				"Value1": "foo",
+			}
+
+			_, err := ct.Render(data)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("Should render succesfully with all keys provided", func() {
+			data := map[string]interface{}{
+				"Value1": "foo",
+				"Value2": "bar",
+			}
+
+			res, err := ct.Render(data)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal("foo bar"))
+		})
+	})
+
+	Context("Rendering an invalid template", func() {
+		// doesn't need to be much more expansive than this
+		// this verifies that invalid template errors are passed along
+		It("Should fail on an invalid template", func() {
+			var ct ContentTemplate = "{{.value1-}"
+
+			_, err := ct.Render(nil)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+})
