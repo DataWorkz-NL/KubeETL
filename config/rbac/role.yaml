@@ -39,7 +39,19 @@ rules:
   - update
   - watch
 - apiGroups:
-  - etl.dataworkz.nl
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - workflows
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
   resources:
   - workflows/status
   verbs:
