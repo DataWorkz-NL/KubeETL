@@ -7,11 +7,6 @@ import (
 	// load authentication plugin for obtaining credentials from cloud providers.
 	"github.com/dataworkz/kubeetl/cmd/connection-provider/commands"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/client-go/tools/clientcmd"
-)
-
-var (
-	clientConfig       clientcmd.ClientConfig
 )
 
 func main() {

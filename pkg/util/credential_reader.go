@@ -2,7 +2,6 @@ package util
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -60,17 +59,12 @@ func (cr *credentialReader) readSecretKey(ctx context.Context, selector *corev1.
 		return "", fmt.Errorf("readSecretKey failed: :%w", err)
 	}
 
-	// TODO: decode base64
 	data, ok := secret.Data[selector.Key]
 	if !ok {
 		return "", fmt.Errorf("key %s not found in secret %s", selector.Key, selector.Name)
 	}
 
-	var dec []byte
-	// discarding error, if this isn't base64 kubernetes is broken
-	_, _ = base64.StdEncoding.Decode(dec, data)
-
-	return string(dec), nil
+	return string(data), nil
 }
 
 func (cr *credentialReader) readConfigMapKey(ctx context.Context, selector *corev1.ConfigMapKeySelector) (string, error) {

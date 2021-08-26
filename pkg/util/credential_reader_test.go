@@ -116,7 +116,7 @@ var _ = Describe("Connection validation webhook", func() {
 
 		for _, obj := range objects {
 			err := k8sClient.Create(context.Background(), obj)
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).ToNot(HaveOccurred())
 		}
 
 	})
@@ -129,44 +129,44 @@ var _ = Describe("Connection validation webhook", func() {
 
 	It("Should return configmap keys", func() {
 		val, err := credReader.ReadValue(context.Background(), "configmapkey")
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(val).To(BeIdenticalTo("foo configmap"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(val).To(Equal("foo configmap"))
 	})
 
 	It("Should return secret keys", func() {
 		val, err := credReader.ReadValue(context.Background(), "secretkey")
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(val).To(BeIdenticalTo("foo secret"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(val).To(Equal("foo secret"))
 	})
 
 	It("Should return inline values", func() {
 		val, err := credReader.ReadValue(context.Background(), "inlinevalue")
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(val).To(BeIdenticalTo("foo inline"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(val).To(Equal("foo inline"))
 	})
 
 	It("Should return an error for referencing missing secret keys", func() {
 		_, err := credReader.ReadValue(context.Background(), "missingsecretkey")
-		Expect(err).Should(HaveOccurred())
+		Expect(err).To(HaveOccurred())
 	})
 
 	It("Should return an error for referencing missing configmap keys", func() {
 		_, err := credReader.ReadValue(context.Background(), "missingconfigmapkey")
-		Expect(err).Should(HaveOccurred())
+		Expect(err).To(HaveOccurred())
 	})
 
 	It("Should return an error for referencing missing secrets", func() {
 		_, err := credReader.ReadValue(context.Background(), "missingsecret")
-		Expect(err).Should(HaveOccurred())
+		Expect(err).To(HaveOccurred())
 	})
 
 	It("Should return an error for referencing missing configmaps", func() {
 		_, err := credReader.ReadValue(context.Background(), "missingconfigmap")
-		Expect(err).Should(HaveOccurred())
+		Expect(err).To(HaveOccurred())
 	})
 
 	It("Should return an error for referencing a value that doesn't exist", func() {
 		_, err := credReader.ReadValue(context.Background(), "does-not-exist")
-		Expect(err).Should(HaveOccurred())
+		Expect(err).To(HaveOccurred())
 	})
 })
