@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"encoding/base64"
 	"time"
 
 	"github.com/dataworkz/kubeetl/api/v1alpha1"
@@ -165,10 +164,3 @@ var _ = Describe("Connection Provider", func() {
 
 	})
 })
-
-func readSecretKey(secret corev1.Secret, key string) string {
-	var dst []byte
-	data := secret.Data[key]
-	_, _ = base64.StdEncoding.Decode(data, dst)
-	return string(dst)
-}

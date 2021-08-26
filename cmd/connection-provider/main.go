@@ -12,9 +12,6 @@ import (
 
 var (
 	clientConfig       clientcmd.ClientConfig
-	logLevel           string // --loglevel
-	glogLevel          int    // --gloglevel
-	podAnnotationsPath string // --pod-annotations
 )
 
 func main() {

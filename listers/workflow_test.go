@@ -22,7 +22,7 @@ var _ = Describe("WorkflowLister", func() {
 		s := runtime.NewScheme()
 		s.AddKnownTypes(v1alpha1.GroupVersion, &v1alpha1.WorkflowList{}, &v1alpha1.Workflow{})
 		_ = v1alpha1.AddToScheme(s)
-		client = fake.NewFakeClientWithScheme(s)
+		client = fake.NewClientBuilder().WithScheme(s).Build()
 		wfl = NewWorkflowLister(client)
 		ctx = context.Background()
 	})

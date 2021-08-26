@@ -123,7 +123,7 @@ var _ = Describe("Connection validation webhook", func() {
 
 	AfterEach(func() {
 		for _, obj := range objects {
-			k8sClient.Delete(context.Background(), obj)
+			Expect(k8sClient.Delete(context.Background(), obj)).To(Succeed())
 		}
 	})
 

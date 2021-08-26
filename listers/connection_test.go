@@ -22,7 +22,7 @@ var _ = Describe("ConnectionLister", func() {
 		s := runtime.NewScheme()
 		s.AddKnownTypes(v1alpha1.GroupVersion, &v1alpha1.ConnectionList{}, &v1alpha1.Connection{})
 		_ = v1alpha1.AddToScheme(s)
-		client = fake.NewFakeClientWithScheme(s)
+		client = fake.NewClientBuilder().WithScheme(s).Build()
 		cl = NewConnectionLister(client)
 		ctx = context.Background()
 	})
