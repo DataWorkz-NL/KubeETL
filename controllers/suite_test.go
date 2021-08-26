@@ -38,7 +38,6 @@ var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
 
-// TODO: commented because test are failing
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
