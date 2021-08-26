@@ -57,7 +57,7 @@ func (cr *credentialReader) readSecretKey(ctx context.Context, selector *corev1.
 	secret := &corev1.Secret{}
 	err := cr.client.Get(ctx, client.ObjectKey{Name: selector.Name, Namespace: cr.connection.Namespace}, secret)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("readSecretKey failed: :%w", err)
 	}
 
 	// TODO: decode base64
