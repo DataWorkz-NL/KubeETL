@@ -157,7 +157,6 @@ var _ = Describe("Connection Provider", func() {
 				if val != expected {
 					return false
 				}
-				// Expect(val).To(Equal(expected))
 			}
 			return true
 		}, timeout, interval)
