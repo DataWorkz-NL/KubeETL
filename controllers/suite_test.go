@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	etldataworkznlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
+	apiv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -59,12 +59,9 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
-	// err = apiv1alpha1.AddToScheme(scheme.Scheme)
-	// Expect(err).NotTo(HaveOccurred())
-
 	err = wfv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
-	err = etldataworkznlv1alpha1.AddToScheme(scheme.Scheme)
+	err = apiv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme

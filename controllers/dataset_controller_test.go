@@ -16,7 +16,7 @@ import (
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
 )
 
-var _ = PDescribe("DataSetReconciler", func() {
+var _ = Describe("DataSetReconciler", func() {
 	const timeout = time.Second * 5
 	const interval = time.Second * 1
 
