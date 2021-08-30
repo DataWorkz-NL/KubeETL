@@ -131,7 +131,7 @@ var _ = Describe("Connection Provider", func() {
 
 	})
 
-	It("Should work", func() {
+	It("Should correctly provide content to a workflow secret", func() {
 		ctx := context.Background()
 
 		Eventually(func() bool {
