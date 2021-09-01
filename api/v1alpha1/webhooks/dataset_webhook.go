@@ -43,7 +43,7 @@ type datasetValidatorHook struct {
 }
 
 func (hook *datasetValidatorHook) Handle(ctx context.Context, req admission.Request) admission.Response {
-	log := logf.Log.WithName("webhooks").WithName("validate-connection")
+	log := logf.Log.WithName("webhooks").WithName("validate-dataset")
 	log.Info("Admission webhook request")
 	ds := v1alpha1.DataSet{}
 	if err := hook.decoder.Decode(req, &ds); err != nil {

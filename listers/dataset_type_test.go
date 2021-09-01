@@ -16,21 +16,21 @@ import (
 
 var _ = Describe("DataSetTypeLister", func() {
 	var client client.Client
-	var ctl DataSetTypeLister
+	var dstl DataSetTypeLister
 	var ctx context.Context
 	BeforeEach(func() {
 		s := runtime.NewScheme()
 		s.AddKnownTypes(v1alpha1.GroupVersion, &v1alpha1.ConnectionTypeList{}, &v1alpha1.ConnectionType{})
 		_ = v1alpha1.AddToScheme(s)
 		client = fake.NewFakeClientWithScheme(s)
-		ctl = NewDataSetTypeLister(client)
+		dstl = NewDataSetTypeLister(client)
 		ctx = context.Background()
 	})
 
 	It("Should be able to find a DataSetType based on the type name", func() {
-		conType, err := ctl.Find(ctx, "default", "test")
+		dsType, err := dstl.Find(ctx, "default", "test")
 		Expect(err).To(Succeed())
-		Expect(conType).To(BeNil())
+		Expect(dsType).To(BeNil())
 		dt := &v1alpha1.DataSetType{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test",
@@ -39,8 +39,8 @@ var _ = Describe("DataSetTypeLister", func() {
 		}
 		err = client.Create(ctx, dt)
 		Expect(err).To(Succeed())
-		conType, err = ctl.Find(ctx, "default", "test")
+		dsType, err = dstl.Find(ctx, "default", "test")
 		Expect(err).To(Succeed())
-		Expect(conType).To(Not(BeNil()))
+		Expect(dsType).To(Not(BeNil()))
 	})
 })
