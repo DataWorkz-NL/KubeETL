@@ -9,9 +9,7 @@ func GetLabelValue(labels map[string]string, key string) string {
 	if !HasLabel(labels, key) {
 		return ""
 	}
-
-	val, _ := labels[key]
-	return val
+	return labels[key]
 }
 
 func AddLabel(labels map[string]string, key, value string) map[string]string {
