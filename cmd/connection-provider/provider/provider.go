@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/dataworkz/kubeetl/api/v1alpha1"
 	"github.com/dataworkz/kubeetl/listers"
 	"github.com/dataworkz/kubeetl/pkg/util"
@@ -31,23 +33,23 @@ func (cp *connectionProvider) ProvideWorkflowSecret(workflowName, workflowNamesp
 	ctx := context.Background()
 	wf, err := cp.workflowLister.Find(ctx, workflowNamespace, workflowName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find workflow with name %s: %w", workflowName, err)
 	}
 
 	secret := corev1.Secret{}
 	err = cp.client.Get(ctx, wf.ConnectionSecretName(), &secret)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find connection secret with name %s: %w", wf.ConnectionSecretName(), err)
 	}
 
 	err = cp.populateSecret(ctx, &secret, wf)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to populate connection secret: %w", err)
 	}
 
 	err = cp.client.Update(ctx, &secret)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to update connection secret: %w", err)
 	}
 
 	return nil
@@ -60,7 +62,7 @@ func (cp *connectionProvider) populateSecret(ctx context.Context, secret *corev1
 	for _, iv := range wf.Spec.InjectableValues {
 		conn, err := cp.connectionLister.Find(ctx, wf.Namespace, iv.ConnectionRef.Name)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to find Connection %s: %w", iv.ConnectionRef.Name, err)
 		}
 
 		credValues := make(map[string]string, len(conn.Spec.Credentials))
@@ -69,7 +71,7 @@ func (cp *connectionProvider) populateSecret(ctx context.Context, secret *corev1
 			credReader := util.NewCredentialReader(cp.client, conn)
 			data, err := credReader.ReadValue(ctx, name)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to read credential value %s in Connection %s: %w", name, iv.ConnectionRef.Name, err)
 			}
 
 			credValues[name] = data
@@ -77,7 +79,7 @@ func (cp *connectionProvider) populateSecret(ctx context.Context, secret *corev1
 
 		content, err := iv.Content.Render(credValues)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to render content for InjectableValue %s: %w", iv.Name, err)
 		}
 
 		secret.StringData[iv.Name] = content
