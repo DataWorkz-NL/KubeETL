@@ -278,7 +278,6 @@ func injectDAG(template *wfv1.Template, ic *injectionContext) error {
 	errors := make([]error, 0)
 	for _, dagTask := range template.DAG.Tasks {
 		target := ic.awf.GetTemplateByName(dagTask.Template)
-		// TODO: handle nil target
 		err := inject(target, ic)
 		if err != nil {
 			errors = append(errors, err)
