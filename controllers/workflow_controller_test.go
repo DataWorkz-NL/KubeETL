@@ -172,7 +172,7 @@ var _ = Describe("WorkflowReconciler", func() {
 		})
 	})
 
-	Context("Workflow with injections", func() {
+	Context("Workflow with injections as environment variables", func() {
 		It("Should inject templates in a DAG", func() {
 			ctx := context.Background()
 			key := types.NamespacedName{
