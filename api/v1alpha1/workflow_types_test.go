@@ -1,6 +1,9 @@
 package v1alpha1
 
 import (
+	"errors"
+	"text/template"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -20,6 +23,9 @@ var _ = Describe("ContentTemplate", func() {
 
 			_, err := ct.Render(data)
 			Expect(err).To(HaveOccurred())
+			var execErr template.ExecError
+			Expect(errors.As(err, &execErr)).To(BeTrue())
+			Expect(execErr.Error()).To(Equal(`template: content:1:14: executing "content" at <.Value2>: map has no entry for key "Value2"`))
 		})
 
 		It("Should render succesfully with all keys provided", func() {

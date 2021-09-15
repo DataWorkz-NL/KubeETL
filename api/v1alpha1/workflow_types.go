@@ -113,7 +113,7 @@ func (ct ContentTemplate) Render(data interface{}) (string, error) {
 		Option("missingkey=error").
 		Parse(string(ct))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error parsing template: %w", err)
 	}
 
 	var buf bytes.Buffer
