@@ -43,31 +43,30 @@ func initConfig() {
 func NewRootCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   fmt.Sprintf("%s --workflow <workflow-name> --namespace <workflow-namespace>", CLIName),
-		Short: "connectionprovider provides injectable connections for a workflow",
+		Short: fmt.Sprintf("%s provides injectable connections for a workflow", CLIName),
 		Run: func(cmd *cobra.Command, args []string) {
+			// creates the in-cluster config
+			config, err := rest.InClusterConfig()
+			er(err)
+
+			scheme, err := v1alpha1.SchemeBuilder.Build()
+			er(err)
+
+			client, err := client.New(config, client.Options{Scheme: scheme})
+			er(err)
+
+			p := provider.NewConnectionProvider(client)
+
+			err = p.ProvideWorkflowSecret(workflow, namespace)
+			er(err)
 		},
 	}
-
-	// creates the in-cluster config
-	config, err := rest.InClusterConfig()
-	er(err)
-
-	scheme, err := v1alpha1.SchemeBuilder.Build()
-	er(err)
-
-	client, err := client.New(config, client.Options{Scheme: scheme})
-	er(err)
-
-	p := provider.NewConnectionProvider(client)
-
-	err = p.ProvideWorkflowSecret(workflow, namespace)
-	er(err)
 
 	return command
 }
 
 func er(err error) {
 	if err != nil {
-		panic(err.Error())
+		log.Fatal(err)
 	}
 }
