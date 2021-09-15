@@ -37,18 +37,15 @@ func (cp *connectionProvider) ProvideWorkflowSecret(workflowName, workflowNamesp
 	}
 
 	secret := corev1.Secret{}
-	err = cp.client.Get(ctx, wf.ConnectionSecretName(), &secret)
-	if err != nil {
+	if err := cp.client.Get(ctx, wf.ConnectionSecretName(), &secret); err != nil {
 		return fmt.Errorf("failed to find connection secret with name %s: %w", wf.ConnectionSecretName(), err)
 	}
 
-	err = cp.populateSecret(ctx, &secret, wf)
-	if err != nil {
+	if err := cp.populateSecret(ctx, &secret, wf); err != nil {
 		return fmt.Errorf("failed to populate connection secret: %w", err)
 	}
 
-	err = cp.client.Update(ctx, &secret)
-	if err != nil {
+	if err := cp.client.Update(ctx, &secret); err != nil {
 		return fmt.Errorf("failed to update connection secret: %w", err)
 	}
 
