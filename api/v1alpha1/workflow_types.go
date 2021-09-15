@@ -144,6 +144,9 @@ func (wf *Workflow) CreateArgoWorkflow() wfv1.Workflow {
 	}
 }
 
+// NameWithHash returns the workflow name with an md5-hash added as a suffix.
+// This is used prevent naming conflicts when creating Workflow-related resources,
+// such as Connection Secrets
 func (wf *Workflow) NameWithHash() string {
 	m := md5.New()
 	h := m.Sum([]byte(wf.Name))
