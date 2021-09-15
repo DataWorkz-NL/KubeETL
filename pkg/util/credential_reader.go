@@ -56,7 +56,7 @@ func (cr *credentialReader) readSecretKey(ctx context.Context, selector *corev1.
 	secret := &corev1.Secret{}
 	err := cr.client.Get(ctx, client.ObjectKey{Name: selector.Name, Namespace: cr.connection.Namespace}, secret)
 	if err != nil {
-		return "", fmt.Errorf("readSecretKey failed: :%w", err)
+		return "", fmt.Errorf("readSecretKey failed: %w", err)
 	}
 
 	data, ok := secret.Data[selector.Key]
@@ -71,7 +71,7 @@ func (cr *credentialReader) readConfigMapKey(ctx context.Context, selector *core
 	cm := &corev1.ConfigMap{}
 	err := cr.client.Get(ctx, client.ObjectKey{Name: selector.Name, Namespace: cr.connection.Namespace}, cm)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("readConfigMapKey failed: %w", err)
 	}
 
 	data, ok := cm.Data[selector.Key]
