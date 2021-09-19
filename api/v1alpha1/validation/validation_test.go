@@ -268,6 +268,34 @@ var _ = Describe("ValidateDataSet", func() {
 		})
 	})
 
+	Context("Validating a v1alpha1.DataSet with a allowed extra field", func() {
+		ds := v1alpha1.DataSet{
+			Spec: v1alpha1.DataSetSpec{
+				Type: "Test",
+				Metadata: v1alpha1.Credentials{
+					"db_name": v1alpha1.Value{
+						Value: "my_db",
+					},
+					"metadata_db_url": v1alpha1.Value{
+						ValueFrom: &v1alpha1.ValueSource{
+							SecretKeyRef: &v1.SecretKeySelector{
+								Key: "metadata_db_url",
+							},
+						},
+					},
+					"nonsense": v1alpha1.Value{
+						Value: "nonsense",
+					},
+				},
+			},
+		}
+		It("should return one error indicating there is an invalid field", func() {
+			dsType.Spec.MetadataFields.AllowExtraFields = true
+			errs := ValidateDataSet(ds, dsType)
+			Expect(errs).To(BeNil())
+		})
+	})
+
 	Context("Validating a v1alpha1.DataSet with an invalid value", func() {
 		ds := v1alpha1.DataSet{
 			Spec: v1alpha1.DataSetSpec{
