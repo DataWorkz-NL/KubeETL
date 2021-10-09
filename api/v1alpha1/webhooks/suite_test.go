@@ -27,13 +27,13 @@ func TestWebhooks(t *testing.T) {
 var _ = BeforeSuite(func(done Done) {
 	By("bootstrapping test environment")
 	failPolicy := admissionregistrationv1beta1.Fail
-	webhookPath := "/validate-v1alpha1-connection"
+	conWebhookPath := "/validate-v1alpha1-connection"
+	dsWebhookPath := "/validate-v1alpha1-dataset"
 
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("..", "..", "..", "config", "crd", "bases")},
 		WebhookInstallOptions: envtest.WebhookInstallOptions{
 			ValidatingWebhooks: []client.Object{
-
 				&admissionregistrationv1beta1.ValidatingWebhookConfiguration{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "deployment-validation-webhook-config",
@@ -50,7 +50,7 @@ var _ = BeforeSuite(func(done Done) {
 								Service: &admissionregistrationv1beta1.ServiceReference{
 									Name:      "deployment-validation-service",
 									Namespace: "default",
-									Path:      &webhookPath,
+									Path:      &conWebhookPath,
 								},
 							},
 							Rules: []admissionregistrationv1beta1.RuleWithOperations{
@@ -63,6 +63,30 @@ var _ = BeforeSuite(func(done Done) {
 										APIGroups:   []string{"etl.dataworkz.nl"},
 										APIVersions: []string{"v1alpha1"},
 										Resources:   []string{"connections"},
+									},
+								},
+							},
+						},
+						{
+							Name:          "dataset.dataworkz.nl",
+							FailurePolicy: &failPolicy,
+							ClientConfig: admissionregistrationv1beta1.WebhookClientConfig{
+								Service: &admissionregistrationv1beta1.ServiceReference{
+									Name:      "deployment-validation-service",
+									Namespace: "default",
+									Path:      &dsWebhookPath,
+								},
+							},
+							Rules: []admissionregistrationv1beta1.RuleWithOperations{
+								{
+									Operations: []admissionregistrationv1beta1.OperationType{
+										admissionregistrationv1beta1.Create,
+										admissionregistrationv1beta1.Update,
+									},
+									Rule: admissionregistrationv1beta1.Rule{
+										APIGroups:   []string{"etl.dataworkz.nl"},
+										APIVersions: []string{"v1alpha1"},
+										Resources:   []string{"datasets"},
 									},
 								},
 							},
@@ -95,6 +119,9 @@ var _ = BeforeSuite(func(done Done) {
 
 	By("running webhook server")
 	err = SetupValidatingConnectionWebhookWithManager(k8sManager)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = SetupValidatingDataSetWebhookWithManager(k8sManager)
 	Expect(err).NotTo(HaveOccurred())
 
 	go func() {

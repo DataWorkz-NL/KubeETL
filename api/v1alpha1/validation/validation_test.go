@@ -185,3 +185,160 @@ var _ = Describe("ValidateConnection", func() {
 		})
 	})
 })
+
+var _ = Describe("ValidateDataSet", func() {
+	var dsType v1alpha1.DataSetType
+
+	BeforeEach(func() {
+		reg := v1alpha1.ValidationRegex("^[a-zA-Z0-9_]*$")
+		val := v1alpha1.Validation{
+			MinLength: pointer.Int32Ptr(3),
+			MaxLength: pointer.Int32Ptr(9),
+			Regex:     &reg,
+		}
+
+		dsType = v1alpha1.DataSetType{
+			Spec: v1alpha1.DataSetTypeSpec{
+				MetadataFields: v1alpha1.MetadataValidation{
+					Fields: []v1alpha1.CredentialFieldSpec{
+						{
+							Name:       "db_name",
+							Validation: &val,
+						},
+						{
+							Name:      "metadata_db_url",
+							Sensitive: true,
+						},
+					},
+					AllowExtraFields: false,
+				},
+			},
+		}
+	})
+
+	Context("Validating a correct v1alpha1.DataSet", func() {
+		ds := v1alpha1.DataSet{
+			Spec: v1alpha1.DataSetSpec{
+				Type: "Test",
+				Metadata: v1alpha1.Credentials{
+					"db_name": v1alpha1.Value{
+						Value: "my_db",
+					},
+					"metadata_db_url": v1alpha1.Value{
+						ValueFrom: &v1alpha1.ValueSource{
+							SecretKeyRef: &v1.SecretKeySelector{
+								Key: "metadata_db_url",
+							},
+						},
+					},
+				},
+			},
+		}
+		It("should return no errors", func() {
+			errs := ValidateDataSet(ds, dsType)
+			Expect(errs).To(BeNil())
+		})
+	})
+
+	Context("Validating a v1alpha1.DataSet with a disallowed extra field", func() {
+		ds := v1alpha1.DataSet{
+			Spec: v1alpha1.DataSetSpec{
+				Type: "Test",
+				Metadata: v1alpha1.Credentials{
+					"db_name": v1alpha1.Value{
+						Value: "my_db",
+					},
+					"metadata_db_url": v1alpha1.Value{
+						ValueFrom: &v1alpha1.ValueSource{
+							SecretKeyRef: &v1.SecretKeySelector{
+								Key: "metadata_db_url",
+							},
+						},
+					},
+					"nonsense": v1alpha1.Value{
+						Value: "nonsense",
+					},
+				},
+			},
+		}
+		It("should return one error indicating there is an invalid field", func() {
+			errs := ValidateDataSet(ds, dsType)
+			Expect(errs).To(Not(BeNil()))
+			Expect(errs.ToAggregate().Error()).To(Equal("spec.metadata.nonsense: Invalid value: v1alpha1.Value{Value:\"nonsense\", ValueFrom:(*v1alpha1.ValueSource)(nil)}: DataSetType does not allow extra fields"))
+		})
+	})
+
+	Context("Validating a v1alpha1.DataSet with a allowed extra field", func() {
+		ds := v1alpha1.DataSet{
+			Spec: v1alpha1.DataSetSpec{
+				Type: "Test",
+				Metadata: v1alpha1.Credentials{
+					"db_name": v1alpha1.Value{
+						Value: "my_db",
+					},
+					"metadata_db_url": v1alpha1.Value{
+						ValueFrom: &v1alpha1.ValueSource{
+							SecretKeyRef: &v1.SecretKeySelector{
+								Key: "metadata_db_url",
+							},
+						},
+					},
+					"nonsense": v1alpha1.Value{
+						Value: "nonsense",
+					},
+				},
+			},
+		}
+		It("should return one error indicating there is an invalid field", func() {
+			dsType.Spec.MetadataFields.AllowExtraFields = true
+			errs := ValidateDataSet(ds, dsType)
+			Expect(errs).To(BeNil())
+		})
+	})
+
+	Context("Validating a v1alpha1.DataSet with an invalid value", func() {
+		ds := v1alpha1.DataSet{
+			Spec: v1alpha1.DataSetSpec{
+				Type: "Test",
+				Metadata: v1alpha1.Credentials{
+					"db_name": v1alpha1.Value{
+						Value: "db",
+					},
+					"metadata_db_url": v1alpha1.Value{
+						ValueFrom: &v1alpha1.ValueSource{
+							SecretKeyRef: &v1.SecretKeySelector{
+								Key: "metadata_db_url",
+							},
+						},
+					},
+				},
+			},
+		}
+		It("should return one error indicating the value is invalid", func() {
+			errs := ValidateDataSet(ds, dsType)
+			Expect(errs).To(Not(BeNil()))
+			Expect(errs.ToAggregate().Error()).To(Equal("spec.metadata.db_name: Invalid value: \"db\": Value below MinLength"))
+		})
+	})
+
+	Context("Validating a v1alpha1.DataSet with a plain text secret", func() {
+		ds := v1alpha1.DataSet{
+			Spec: v1alpha1.DataSetSpec{
+				Type: "Test",
+				Metadata: v1alpha1.Credentials{
+					"db_name": v1alpha1.Value{
+						Value: "my_db",
+					},
+					"metadata_db_url": v1alpha1.Value{
+						Value: "secret",
+					},
+				},
+			},
+		}
+		It("should return one error indicating the field is sensitive", func() {
+			errs := ValidateDataSet(ds, dsType)
+			Expect(errs).To(Not(BeNil()))
+			Expect(errs.ToAggregate().Error()).To(Equal("spec.metadata.metadata_db_url: Invalid value: v1alpha1.Value{Value:\"secret\", ValueFrom:(*v1alpha1.ValueSource)(nil)}: Field is sensitive, only SecretKeyRef is allowed"))
+		})
+	})
+})
