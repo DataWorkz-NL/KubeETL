@@ -38,8 +38,7 @@ var _ = Describe("Connection validation webhook", func() {
 	})
 
 	AfterEach(func() {
-		err := k8sClient.Delete(context.Background(), conType)
-		Expect(err).ShouldNot(HaveOccurred())
+		Expect(k8sClient.Delete(context.Background(), conType)).Should(Succeed())
 	})
 
 	It("Should return an error if no ConnectionType exists", func() {

@@ -39,7 +39,7 @@ var _ = Describe("DataSet validation webhook", func() {
 	})
 
 	AfterEach(func() {
-		k8sClient.Delete(context.Background(), dtype)
+		Expect(k8sClient.Delete(context.Background(), dtype)).Should(Succeed())
 	})
 
 	It("Should return an error if no DataSetType exists", func() {
