@@ -84,3 +84,45 @@ func ValidateConnection(con v1alpha1.Connection, conType v1alpha1.ConnectionType
 
 	return errList
 }
+
+// ValidateDataSet validates whether a v1alpha1.DataSet adheres to the definition
+// of its type defined by a v1alpha1.DataSetType
+func ValidateDataSet(ds v1alpha1.DataSet, dtype v1alpha1.DataSetType) field.ErrorList {
+	// Transform to fieldmap for quick lookup
+	fieldMap := make(map[string]*v1alpha1.CredentialFieldSpec)
+	for _, credField := range dtype.Spec.MetadataFields.Fields {
+		c := credField
+		fieldMap[credField.Name] = &c
+	}
+
+	// Perform field validation
+	var errList field.ErrorList
+	for k, v := range ds.Spec.Metadata {
+		credField := fieldMap[k]
+		path := field.NewPath("spec").Child("metadata").Child(k)
+		if credField == nil {
+			if !dtype.Spec.MetadataFields.AllowExtraFields {
+				err := field.Invalid(path, v, "DataSetType does not allow extra fields")
+				errList = append(errList, err)
+			}
+			continue
+		}
+
+		if credField.Sensitive {
+			if v.Value != "" || v.ValueFrom.ConfigMapKeyRef != nil {
+				err := field.Invalid(path, v, "Field is sensitive, only SecretKeyRef is allowed")
+				errList = append(errList, err)
+
+				continue
+			}
+		}
+
+		// Perform validation, not possible with reference valueFrom
+		if v.Value != "" {
+			errs := ValidateValue(v.Value, path, *credField.Validation)
+			errList = append(errList, errs...)
+		}
+	}
+
+	return errList
+}
