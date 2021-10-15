@@ -26,6 +26,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	etldataworkznlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	etlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	etlhooks "github.com/dataworkz/kubeetl/api/v1alpha1/webhooks"
 	"github.com/dataworkz/kubeetl/controllers"
@@ -41,16 +42,19 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = etlv1alpha1.AddToScheme(scheme)
+	_ = etldataworkznlv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
+	var connectionInjectionImage string
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.StringVar(&connectionInjectionImage, "connection-injection-image", "dataworkz/kubeetl-injector", "The image that will provide connection injection functionality for Workflows")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
@@ -76,6 +80,15 @@ func main() {
 	err = etlhooks.SetupValidatingConnectionWebhookWithManager(mgr)
 	if err != nil {
 		setupLog.Error(err, "unable to start webhook")
+		os.Exit(1)
+	}
+	if err = (&controllers.WorkflowReconciler{
+		Client:                   mgr.GetClient(),
+		Log:                      ctrl.Log.WithName("controllers").WithName("Workflow"),
+		Scheme:                   mgr.GetScheme(),
+		ConnectionInjectionImage: connectionInjectionImage,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Workflow")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

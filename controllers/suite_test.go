@@ -59,11 +59,11 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
+	err = wfv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
 	err = apiv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = wfv1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
 	// +kubebuilder:scaffold:scheme
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
@@ -77,6 +77,13 @@ var _ = BeforeSuite(func(done Done) {
 		Client: k8sManager.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("DataSet"),
 		Scheme: k8sManager.GetScheme(),
+	}).SetupWithManager(k8sManager)
+
+	err = (&WorkflowReconciler{
+		Client:                   k8sManager.GetClient(),
+		Log:                      ctrl.Log.WithName("controllers").WithName("Workflow"),
+		Scheme:                   k8sManager.GetScheme(),
+		ConnectionInjectionImage: "kubeetl/connection-injector",
 	}).SetupWithManager(k8sManager)
 
 	go func() {
