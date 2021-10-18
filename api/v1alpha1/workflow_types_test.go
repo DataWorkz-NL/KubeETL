@@ -40,6 +40,27 @@ var _ = Describe("ContentTemplate", func() {
 		})
 	})
 
+	Context("Rendering a nested template", func() {
+		var ct ContentTemplate
+
+		BeforeEach(func() {
+			ct = "{{.Nested.Value1}} {{.Nested.Value2}}"
+		})
+
+		It("Should render succesfully with all keys provided", func() {
+			data := map[string]interface{}{
+				"Nested": map[string]interface{}{
+					"Value1": "foo",
+					"Value2": "bar",
+				},
+			}
+
+			res, err := ct.Render(data)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal("foo bar"))
+		})
+	})
+
 	Context("Rendering an invalid template", func() {
 		// doesn't need to be much more expansive than this
 		// this verifies that invalid template errors are passed along

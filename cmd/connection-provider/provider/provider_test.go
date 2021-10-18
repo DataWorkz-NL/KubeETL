@@ -22,6 +22,7 @@ var _ = Describe("Connection Provider", func() {
 	var backingConfigMap *corev1.ConfigMap
 	var workflow *v1alpha1.Workflow
 	var connection *v1alpha1.Connection
+	var dataset *v1alpha1.DataSet
 
 	var workflowSecretKey = types.NamespacedName{
 		Namespace: "default",
@@ -92,6 +93,28 @@ var _ = Describe("Connection Provider", func() {
 
 		connectionRef := corev1.LocalObjectReference{Name: connection.Name}
 
+		dataset = &v1alpha1.DataSet{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "test-dataset",
+				Namespace: "default",
+			},
+			Spec: v1alpha1.DataSetSpec{
+				Metadata: v1alpha1.Credentials{
+					"inline": v1alpha1.Value{
+						Value: "dataset-value",
+					},
+				},
+				Connection: v1alpha1.ConnectionFrom{
+					ConnectionFrom: &v1alpha1.ConnectionRef{
+						LocalObjectReference: connectionRef,
+					},
+				},
+				StorageType: v1alpha1.PersistentType,
+			},
+		}
+
+		datasetRef := corev1.LocalObjectReference{Name: dataset.Name}
+
 		workflow = &v1alpha1.Workflow{
 			ObjectMeta: v1.ObjectMeta{
 				Name:      "test-workflow",
@@ -119,12 +142,23 @@ var _ = Describe("Connection Provider", func() {
 						Content:       "{{.inline}} {{.configmapRef}} {{.secretRef}}",
 						ConnectionRef: connectionRef,
 					},
+					v1alpha1.InjectableValue{
+						Name:          "from-dataset",
+						Content:       "{{metadata.inline}}",
+						ConnectionRef: datasetRef,
+					},
+					v1alpha1.InjectableValue{
+						Name:          "from-dataset-connection",
+						Content:       "{{connection.inline}}",
+						ConnectionRef: datasetRef,
+					},
 				},
 			},
 		}
 
 		Expect(k8sClient.Create(ctx, workflow)).ToNot(HaveOccurred())
 		Expect(k8sClient.Create(ctx, connection)).ToNot(HaveOccurred())
+		Expect(k8sClient.Create(ctx, dataset)).ToNot(HaveOccurred())
 		Expect(k8sClient.Create(ctx, workflowSecret)).ToNot(HaveOccurred())
 		Expect(k8sClient.Create(ctx, backingSecret)).ToNot(HaveOccurred())
 		Expect(k8sClient.Create(ctx, backingConfigMap)).ToNot(HaveOccurred())
@@ -135,7 +169,7 @@ var _ = Describe("Connection Provider", func() {
 		ctx := context.Background()
 
 		Eventually(func() bool {
-			err := connProvider.ProvideWorkflowSecret(workflow.Name, workflow.Namespace)
+			err := provider.ProvideWorkflowSecret(workflow.Name, workflow.Namespace)
 			if err != nil {
 				return false
 			}
@@ -146,10 +180,12 @@ var _ = Describe("Connection Provider", func() {
 			}
 
 			expectedResults := map[string]string{
-				"inline-content": "inline-value",
-				"configmap-ref":  "cm-value",
-				"secret-ref":     "secret-value",
-				"combination":    "inline-value cm-value secret-value",
+				"inline-content":          "inline-value",
+				"configmap-ref":           "cm-value",
+				"secret-ref":              "secret-value",
+				"combination":             "inline-value cm-value secret-value",
+				"from-dataset":            "dataset-value",
+				"from-dataset-connection": "inline-value",
 			}
 
 			for key, expected := range expectedResults {
