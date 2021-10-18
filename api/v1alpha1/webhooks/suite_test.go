@@ -1,6 +1,7 @@
 package webhooks
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -21,7 +22,11 @@ var testEnv *envtest.Environment
 
 func TestWebhooks(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Webhooks Suite")
+	// see: https://github.com/DataWorkz-NL/KubeETL/issues/43
+	_, skip := os.LookupEnv("SKIP_WEBHOOK_TEST")
+	if !skip {
+		RunSpecs(t, "Webhooks Suite")
+	}
 }
 
 var _ = BeforeSuite(func(done Done) {
