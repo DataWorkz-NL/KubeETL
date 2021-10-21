@@ -21,7 +21,6 @@ var _ = Describe("Connection validation webhook", func() {
 				Namespace: "default",
 			},
 			Spec: v1alpha1.ConnectionTypeSpec{
-				Name: "mysql",
 				Fields: []v1alpha1.CredentialFieldSpec{
 					{
 						Name:     "test_val",

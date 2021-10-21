@@ -55,9 +55,6 @@ type ConnectionTypeList struct {
 
 // ConnectionTypeSpec defines the desired state of ConnectionType
 type ConnectionTypeSpec struct {
-	//+required
-	Name string `json:"name"`
-
 	// CredentialFields used in this ConnectionTypeSpec. Used to validate input.
 	//+optional
 	Fields []CredentialFieldSpec `json:"fields,omitempty"`

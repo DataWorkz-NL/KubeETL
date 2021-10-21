@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
 
@@ -71,8 +72,10 @@ var _ = Describe("ValidateConnection", func() {
 		}
 
 		conType = v1alpha1.ConnectionType{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test",
+			},
 			Spec: v1alpha1.ConnectionTypeSpec{
-				Name: "Test",
 				Fields: []v1alpha1.CredentialFieldSpec{
 					{
 						Name:       "username",
