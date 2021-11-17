@@ -17,13 +17,13 @@ import (
 
 var cfg *rest.Config
 var k8sClient client.Client
-var connProvider ConnectionProvider
+var provider SecretProvider
 var testEnv *envtest.Environment
 
-func TestConnectionProvider(t *testing.T) {
+func TestSecretProvider(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	RunSpecs(t, "Connection Provider")
+	RunSpecs(t, "SecretProvider Provider")
 }
 
 var _ = BeforeSuite(func(done Done) {
@@ -46,7 +46,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
 
-	connProvider = NewConnectionProvider(k8sClient)
+	provider = NewSecretProvider(k8sClient)
 
 	close(done)
 }, 60)

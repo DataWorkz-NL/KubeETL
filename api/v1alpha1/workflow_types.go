@@ -84,8 +84,12 @@ type InjectableValue struct {
 	Name string `json:"name"`
 
 	// Name of the `Connection` that is being injected here
-	// +required
+	// +optional
 	ConnectionRef corev1.LocalObjectReference `json:"connectionRef"`
+
+	// Name of the `DataSet` that is being injected here
+	// +optional
+	DataSetRef corev1.LocalObjectReference `json:"dataSetRef"`
 
 	// If true, all the InjectDefinitions will be applied to all ContainerTemplates in this workflow.
 	// If false, consuming templates must specifically request this ConnectionInjection
@@ -100,7 +104,7 @@ type InjectableValue struct {
 	// +optional
 	MountPath string `json:"mountPath,omitempty"`
 
-	// Go template that will be rendered using the connection fields as data
+	// Go template that will be rendered using the connection/dataset fields as data
 	// Example: mysql://{{.user}}:{{.password}}@{{.host}}:{{.port}}/{{.database}}
 	// +required
 	Content ContentTemplate `json:"content"`

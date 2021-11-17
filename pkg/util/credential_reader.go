@@ -36,25 +36,52 @@ func (cr *credentialReader) ReadValue(ctx context.Context, name string) (string,
 		return value.Value, nil
 	}
 	if value.ValueFrom != nil {
-		return cr.readValueSource(ctx, value.ValueFrom)
+		return readValueSource(ctx, cr.client, cr.connection.Namespace, value.ValueFrom)
 	}
 	return "", fmt.Errorf("credential value %s in connection %s does not contain a value or value source", name, cr.connection.Name)
 }
 
-func (cr *credentialReader) readValueSource(ctx context.Context, valueSource *v1alpha1.ValueSource) (string, error) {
+type dataSetReader struct {
+	client  client.Client
+	dataset *v1alpha1.DataSet
+}
+
+func NewDataSetCredentialReader(client client.Client, dataset *v1alpha1.DataSet) CredentialReader {
+	return &dataSetReader{
+		client:  client,
+		dataset: dataset,
+	}
+}
+
+func (cr *dataSetReader) ReadValue(ctx context.Context, name string) (string, error) {
+	value, ok := cr.dataset.Spec.Metadata[name]
+	if !ok {
+		return "", fmt.Errorf("credential value %s not found in dataset %s", name, cr.dataset.Name)
+	}
+
+	if value.Value != "" {
+		return value.Value, nil
+	}
+	if value.ValueFrom != nil {
+		return readValueSource(ctx, cr.client, cr.dataset.Namespace, value.ValueFrom)
+	}
+	return "", fmt.Errorf("credential value %s in dataset %s does not contain a value or value source", name, cr.dataset.Name)
+}
+
+func readValueSource(ctx context.Context, cl client.Client, namespace string, valueSource *v1alpha1.ValueSource) (string, error) {
 	if valueSource.ConfigMapKeyRef != nil {
-		return cr.readConfigMapKey(ctx, valueSource.ConfigMapKeyRef)
+		return readConfigMapKey(ctx, cl, namespace, valueSource.ConfigMapKeyRef)
 	}
 	if valueSource.SecretKeyRef != nil {
-		return cr.readSecretKey(ctx, valueSource.SecretKeyRef)
+		return readSecretKey(ctx, cl, namespace, valueSource.SecretKeyRef)
 	}
 
 	return "", errors.New("no configmapkeyref or secretkeyref found")
 }
 
-func (cr *credentialReader) readSecretKey(ctx context.Context, selector *corev1.SecretKeySelector) (string, error) {
+func readSecretKey(ctx context.Context, cl client.Client, namespace string, selector *corev1.SecretKeySelector) (string, error) {
 	secret := &corev1.Secret{}
-	err := cr.client.Get(ctx, client.ObjectKey{Name: selector.Name, Namespace: cr.connection.Namespace}, secret)
+	err := cl.Get(ctx, client.ObjectKey{Name: selector.Name, Namespace: namespace}, secret)
 	if err != nil {
 		return "", fmt.Errorf("readSecretKey failed: %w", err)
 	}
@@ -67,9 +94,9 @@ func (cr *credentialReader) readSecretKey(ctx context.Context, selector *corev1.
 	return string(data), nil
 }
 
-func (cr *credentialReader) readConfigMapKey(ctx context.Context, selector *corev1.ConfigMapKeySelector) (string, error) {
+func readConfigMapKey(ctx context.Context, cl client.Client, namespace string, selector *corev1.ConfigMapKeySelector) (string, error) {
 	cm := &corev1.ConfigMap{}
-	err := cr.client.Get(ctx, client.ObjectKey{Name: selector.Name, Namespace: cr.connection.Namespace}, cm)
+	err := cl.Get(ctx, client.ObjectKey{Name: selector.Name, Namespace: namespace}, cm)
 	if err != nil {
 		return "", fmt.Errorf("readConfigMapKey failed: %w", err)
 	}
