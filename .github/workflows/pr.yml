@@ -5,6 +5,12 @@ jobs:
     name: scanning
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: verify
+        run: |
+          curl https://github.com/web-flow.gpg | gpg --import
+          git verify-commit --raw $(git rev-parse --short HEAD)
       - name: Cache vdb
         uses: actions/cache@v2
         with:
