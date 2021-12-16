@@ -108,7 +108,8 @@ func (r *WorkflowReconciler) updateWorkflow(workflow *v1alpha1.Workflow, awf *wf
 		Daemon:             pointer.BoolPtr(true),
 		ServiceAccountName: workflow.Spec.InjectionServiceAccount,
 		Container: &corev1.Container{
-			Image: r.ConnectionInjectionImage,
+			Image:   r.ConnectionInjectionImage,
+			Command: []string{"connectionprovider"},
 			Args: []string{
 				"--workflow",
 				awf.Name,

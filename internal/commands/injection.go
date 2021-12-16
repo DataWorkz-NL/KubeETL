@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/dataworkz/kubeetl/api/v1alpha1"
-	"github.com/dataworkz/kubeetl/cmd/connection-provider/provider"
+	"github.com/dataworkz/kubeetl/internal/provider"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -40,7 +40,7 @@ func initConfig() {
 	})
 }
 
-func NewRootCommand() *cobra.Command {
+func NewInjectionCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   fmt.Sprintf("%s --workflow <workflow-name> --namespace <workflow-namespace>", CLIName),
 		Short: fmt.Sprintf("%s provides injectable secrets for a workflow", CLIName),
