@@ -19,6 +19,8 @@ type ControllerManager struct {
 	scheme *runtime.Scheme
 	schemasRegistration []SchemeRegistration
 
+	reconcilerRegstration []ReconcilerRegistration
+
 	webhooksEnabled bool
 	webhookRegistration []WebhookRegistration
 }
@@ -38,8 +40,7 @@ func New(opts ...ControllerManagerOpts) *ControllerManager {
 func (cm *ControllerManager) Init() error {
 	// TODO add proper logging
 	for _, addToScheme := range cm.schemasRegistration {
-		err := addToScheme(cm.scheme)
-		if err != nil {
+		if err := addToScheme(cm.scheme); err != nil {
 			return fmt.Errorf("could not initialize schemas: %w", err)
 		}
 	}
@@ -55,9 +56,18 @@ func (cm *ControllerManager) Init() error {
 		return fmt.Errorf("could not create runtime manager: %w", err)
 	}
 
+	for _, registerReconciler := range cm.reconcilerRegstration {
+		if err := registerReconciler(mgr); err != nil {
+			return fmt.Errorf("could not register reconciler: %v", err)
+		}
+	}
+
 	if cm.webhooksEnabled {
 		for _, registerWebhook := range cm.webhookRegistration {
-			registerWebhook(mgr)
+			if err := registerWebhook(mgr); err != nil {
+				return fmt.Errorf("unable to register webhook: %v", err)
+			}
+			
 		}
 	}
 
@@ -104,6 +114,14 @@ type SchemeRegistration func(*runtime.Scheme) error
 func WithSchemas(schemas ...SchemeRegistration) ControllerManagerOpts {
 	return func(cm *ControllerManager) {
 		cm.schemasRegistration = schemas
+	}
+}
+
+type ReconcilerRegistration func(ctrl.Manager) error
+
+func WithReconcilers(reconcilers ...ReconcilerRegistration) ControllerManagerOpts {
+	return func(cm *ControllerManager) {
+		cm.reconcilerRegstration = reconcilers
 	}
 }
 
