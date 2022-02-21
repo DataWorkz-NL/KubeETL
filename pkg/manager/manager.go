@@ -11,6 +11,8 @@ import (
 type ControllerManager struct {
 	bindPort int
 
+	mgr ctrl.Manager
+
 	leaderElectionEnabled bool
 	leaderElectionId string
 
@@ -37,6 +39,7 @@ func New(opts ...ControllerManagerOpts) *ControllerManager {
 
 // Init initializes all components of the KubeETL operator:
 // - It adds the KubeETL schemas to the runtime.Scheme
+// - It registers all reconcilers & webhooks
 func (cm *ControllerManager) Init() error {
 	// TODO add proper logging
 	for _, addToScheme := range cm.schemasRegistration {
@@ -45,6 +48,7 @@ func (cm *ControllerManager) Init() error {
 		}
 	}
 
+	// TODO move out and make sure this is mockable
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             cm.scheme,
 		MetricsBindAddress: cm.metricsAddr,
@@ -55,6 +59,7 @@ func (cm *ControllerManager) Init() error {
 	if err != nil {
 		return fmt.Errorf("could not create runtime manager: %w", err)
 	}
+	cm.mgr = mgr
 
 	for _, registerReconciler := range cm.reconcilerRegstration {
 		if err := registerReconciler(mgr); err != nil {
@@ -69,6 +74,15 @@ func (cm *ControllerManager) Init() error {
 			}
 			
 		}
+	}
+
+	return nil
+}
+
+// Start starts the controller manager and the underlying reconcilers + webhooks
+func (cm *ControllerManager) Start() error {
+	if err := cm.mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+		return fmt.Errorf("manager run failed: %v", err)
 	}
 
 	return nil
