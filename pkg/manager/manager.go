@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 // ControllerManager manages all of KubeETLs controllers + webhooks
@@ -17,6 +18,9 @@ type ControllerManager struct {
 	
 	scheme *runtime.Scheme
 	schemasRegistration []SchemeRegistration
+
+	webhooksEnabled bool
+	webhookRegistration []WebhookRegistration
 }
 
 func New(opts ...ControllerManagerOpts) *ControllerManager {
@@ -32,10 +36,28 @@ func New(opts ...ControllerManagerOpts) *ControllerManager {
 // Init initializes all components of the KubeETL operator:
 // - It adds the KubeETL schemas to the runtime.Scheme
 func (cm *ControllerManager) Init() error {
+	// TODO add proper logging
 	for _, addToScheme := range cm.schemasRegistration {
 		err := addToScheme(cm.scheme)
 		if err != nil {
 			return fmt.Errorf("could not initialize schemas: %w", err)
+		}
+	}
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+		Scheme:             cm.scheme,
+		MetricsBindAddress: cm.metricsAddr,
+		Port:               cm.bindPort,
+		LeaderElection:     cm.leaderElectionEnabled,
+		LeaderElectionID:   cm.leaderElectionId,
+	})
+	if err != nil {
+		return fmt.Errorf("could not create runtime manager: %w", err)
+	}
+
+	if cm.webhooksEnabled {
+		for _, registerWebhook := range cm.webhookRegistration {
+			registerWebhook(mgr)
 		}
 	}
 
@@ -82,5 +104,14 @@ type SchemeRegistration func(*runtime.Scheme) error
 func WithSchemas(schemas ...SchemeRegistration) ControllerManagerOpts {
 	return func(cm *ControllerManager) {
 		cm.schemasRegistration = schemas
+	}
+}
+
+type WebhookRegistration func(ctrl.Manager) error
+
+func WithWebhooks(webhooks ...WebhookRegistration) ControllerManagerOpts {
+	return func(cm *ControllerManager) {
+		cm.webhooksEnabled = true
+		cm.webhookRegistration = webhooks
 	}
 }
