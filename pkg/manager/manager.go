@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"sync"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -25,22 +26,33 @@ type ControllerManager struct {
 
 	webhooksEnabled bool
 	webhookRegistration []WebhookRegistration
+
+	initOnce sync.Once
+	opts []ControllerManagerOpts
 }
 
 func New(opts ...ControllerManagerOpts) *ControllerManager {
-	// TODO set defaults
-	m := &ControllerManager{}
-	for _, opt := range opts {
-		opt(m)
+	return &ControllerManager{
+		opts: opts,
 	}
+}
 
-	return m
+// setDefaults on the ControllerManager
+func (cm *ControllerManager) setDefaults() {
+	cm.bindPort = 9443
+	cm.scheme = runtime.NewScheme()
 }
 
 // Init initializes all components of the KubeETL operator:
+// - It configures defaults for the CM and applies all options
 // - It adds the KubeETL schemas to the runtime.Scheme
 // - It registers all reconcilers & webhooks
-func (cm *ControllerManager) Init() error {
+func (cm *ControllerManager) init() error {
+	cm.setDefaults()
+	for _, opt := range cm.opts {
+		opt(cm)
+	}
+
 	// TODO add proper logging
 	for _, addToScheme := range cm.schemasRegistration {
 		if err := addToScheme(cm.scheme); err != nil {
@@ -81,6 +93,12 @@ func (cm *ControllerManager) Init() error {
 
 // Start starts the controller manager and the underlying reconcilers + webhooks
 func (cm *ControllerManager) Start() error {
+	cm.initOnce.Do(func() {
+		err := cm.init()
+		if err != nil {
+			panic(err)
+		}
+	})
 	if err := cm.mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		return fmt.Errorf("manager run failed: %v", err)
 	}
