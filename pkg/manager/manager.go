@@ -161,7 +161,12 @@ type WebhookRegistration func(ctrl.Manager) error
 
 func WithWebhooks(webhooks ...WebhookRegistration) ControllerManagerOpts {
 	return func(cm *ControllerManager) {
-		cm.webhooksEnabled = true
 		cm.webhookRegistration = webhooks
+	}
+}
+
+func WithWebhooksEnabled(enabled bool) ControllerManagerOpts {
+	return func(cm *ControllerManager) {
+		cm.webhooksEnabled = true
 	}
 }

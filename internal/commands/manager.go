@@ -33,6 +33,7 @@ const (
 type managerConfig struct {
 	metricsAddr          string
 	enableLeaderElection bool
+	webhooksEnabled      bool
 }
 
 func NewManagerCommand() *cobra.Command {
@@ -47,6 +48,7 @@ func NewManagerCommand() *cobra.Command {
 
 	cmd.Flags().StringVar(&config.metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	cmd.Flags().BoolVar(&config.enableLeaderElection, "enable-leader-election", false, "Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
+	cmd.Flags().BoolVar(&config.webhooksEnabled, "webhooks-enabled", false, "Enable validating webhooks for KubeETL.")
 
 	return cmd
 }
@@ -56,6 +58,7 @@ func (c *managerConfig) run() {
 	cm := manager.New(
 		manager.WithMetricsAddress(c.metricsAddr),
 		manager.WithLeaderElection(c.enableLeaderElection),
+		manager.WithWebhooksEnabled(c.webhooksEnabled),
 		manager.WithSchemas(
 			clientgoscheme.AddToScheme,
 			etlv1alpha1.AddToScheme,
