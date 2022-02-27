@@ -15,6 +15,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
+
+	"github.com/dataworkz/kubeetl/pkg/manager"
 )
 
 var (
@@ -27,15 +29,6 @@ const (
 	// TODO make configurable
 	DockerImage = "ghcr.io/dataworkz-nl/kubeetl:main"
 )
-
-// TODO move init to seperate manager package
-func init() {
-	_ = clientgoscheme.AddToScheme(scheme)
-
-	_ = etlv1alpha1.AddToScheme(scheme)
-	_ = etldataworkznlv1alpha1.AddToScheme(scheme)
-	// +kubebuilder:scaffold:scheme
-}
 
 type managerConfig struct {
 	metricsAddr          string
@@ -60,43 +53,30 @@ func NewManagerCommand() *cobra.Command {
 
 func (c *managerConfig) run() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: c.metricsAddr,
-		Port:               9443,
-		LeaderElection:     c.enableLeaderElection,
-		LeaderElectionID:   "1345a080.dataworkz.nl",
-	})
-	if err != nil {
-		setupLog.Error(err, "unable to start manager")
-		os.Exit(1)
-	}
-
-	if err = (&controllers.DataSetReconciler{
-		Client: mgr.GetClient(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "DataSet")
-		os.Exit(1)
-	}
-
-	err = etlhooks.SetupValidatingConnectionWebhookWithManager(mgr)
-	if err != nil {
-		setupLog.Error(err, "unable to start webhook")
-		os.Exit(1)
-	}
-	if err = (&controllers.WorkflowReconciler{
-		Client:                   mgr.GetClient(),
-		Log:                      ctrl.Log.WithName("controllers").WithName("Workflow"),
-		Scheme:                   mgr.GetScheme(),
-		ConnectionInjectionImage: DockerImage,
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Workflow")
-		os.Exit(1)
-	}
+	cm := manager.New(
+		manager.WithMetricsAddress(c.metricsAddr),
+		manager.WithLeaderElection(c.enableLeaderElection),
+		manager.WithSchemas(
+			clientgoscheme.AddToScheme,
+			etlv1alpha1.AddToScheme,
+			etldataworkznlv1alpha1.AddToScheme,
+		),
+		manager.WithWebhooks(
+			etlhooks.SetupValidatingConnectionWebhookWithManager,
+			etlhooks.SetupValidatingDataSetWebhookWithManager,
+		),
+		manager.WithReconcilers(
+			(&controllers.DataSetReconciler{}).SetupWithManager,
+			(&controllers.WorkflowReconciler{
+				Log:                      ctrl.Log.WithName("controllers").WithName("Workflow"),
+				ConnectionInjectionImage: DockerImage,
+			}).SetupWithManager,
+		),
+	)
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := cm.Start(); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}

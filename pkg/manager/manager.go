@@ -15,20 +15,20 @@ type ControllerManager struct {
 	mgr ctrl.Manager
 
 	leaderElectionEnabled bool
-	leaderElectionId string
+	leaderElectionId      string
 
 	metricsAddr string
-	
-	scheme *runtime.Scheme
+
+	scheme              *runtime.Scheme
 	schemasRegistration []SchemeRegistration
 
 	reconcilerRegstration []ReconcilerRegistration
 
-	webhooksEnabled bool
+	webhooksEnabled     bool
 	webhookRegistration []WebhookRegistration
 
 	initOnce sync.Once
-	opts []ControllerManagerOpts
+	opts     []ControllerManagerOpts
 }
 
 func New(opts ...ControllerManagerOpts) *ControllerManager {
@@ -84,7 +84,7 @@ func (cm *ControllerManager) init() error {
 			if err := registerWebhook(mgr); err != nil {
 				return fmt.Errorf("unable to register webhook: %v", err)
 			}
-			
+
 		}
 	}
 

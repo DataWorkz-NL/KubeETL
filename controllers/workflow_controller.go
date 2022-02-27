@@ -311,6 +311,9 @@ func injectSteps(template *wfv1.Template, ic *injectionContext) error {
 }
 
 func (r *WorkflowReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	r.Client = mgr.GetClient()
+	r.Scheme = mgr.GetScheme()
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Workflow{}).
 		Complete(r)
