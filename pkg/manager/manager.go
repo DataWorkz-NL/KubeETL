@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -28,12 +29,14 @@ type ControllerManager struct {
 	webhookRegistration []WebhookRegistration
 
 	initOnce sync.Once
+	log      logr.Logger
 	opts     []ControllerManagerOpts
 }
 
 func New(opts ...ControllerManagerOpts) *ControllerManager {
 	return &ControllerManager{
 		opts: opts,
+		log:  ctrl.Log.WithName("controller-manager"),
 	}
 }
 
@@ -48,12 +51,13 @@ func (cm *ControllerManager) setDefaults() {
 // - It adds the KubeETL schemas to the runtime.Scheme
 // - It registers all reconcilers & webhooks
 func (cm *ControllerManager) init() error {
+	cm.log.Info("initializing controller-manager")
 	cm.setDefaults()
 	for _, opt := range cm.opts {
 		opt(cm)
 	}
 
-	// TODO add proper logging
+	cm.log.Info("registering schemas")
 	for _, addToScheme := range cm.schemasRegistration {
 		if err := addToScheme(cm.scheme); err != nil {
 			return fmt.Errorf("could not initialize schemas: %w", err)
@@ -73,6 +77,7 @@ func (cm *ControllerManager) init() error {
 	}
 	cm.mgr = mgr
 
+	cm.log.Info("registering reconcilers")
 	for _, registerReconciler := range cm.reconcilerRegstration {
 		if err := registerReconciler(mgr); err != nil {
 			return fmt.Errorf("could not register reconciler: %v", err)
@@ -80,6 +85,7 @@ func (cm *ControllerManager) init() error {
 	}
 
 	if cm.webhooksEnabled {
+		cm.log.Info("registering webhooks")
 		for _, registerWebhook := range cm.webhookRegistration {
 			if err := registerWebhook(mgr); err != nil {
 				return fmt.Errorf("unable to register webhook: %v", err)
@@ -99,6 +105,8 @@ func (cm *ControllerManager) Start() error {
 			panic(err)
 		}
 	})
+
+	cm.log.Info("starting manager")
 	if err := cm.mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		return fmt.Errorf("manager run failed: %v", err)
 	}
@@ -167,6 +175,6 @@ func WithWebhooks(webhooks ...WebhookRegistration) ControllerManagerOpts {
 
 func WithWebhooksEnabled(enabled bool) ControllerManagerOpts {
 	return func(cm *ControllerManager) {
-		cm.webhooksEnabled = true
+		cm.webhooksEnabled = enabled
 	}
 }
