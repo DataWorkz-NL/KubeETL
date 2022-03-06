@@ -9,7 +9,6 @@ import (
 	etlhooks "github.com/dataworkz/kubeetl/api/v1alpha1/webhooks"
 	"github.com/dataworkz/kubeetl/controllers"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -20,7 +19,6 @@ import (
 )
 
 var (
-	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
 )
 

@@ -78,6 +78,7 @@ var _ = BeforeSuite(func(done Done) {
 		Log:    ctrl.Log.WithName("controllers").WithName("DataSet"),
 		Scheme: k8sManager.GetScheme(),
 	}).SetupWithManager(k8sManager)
+	Expect(err).NotTo(HaveOccurred())
 
 	err = (&WorkflowReconciler{
 		Client:                   k8sManager.GetClient(),
