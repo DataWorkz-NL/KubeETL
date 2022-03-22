@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= dataworkz/kubeetl:latest # TODO default to right approach (e.g. latest tag)
+IMG ?= ghcr.io/dataworkz-nl:main # TODO default to right approach (e.g. latest tag from github)
 # CRD Options
 CRD_OPTIONS ?= "crd"
 KUBEBUILDER_ASSETS_DIR ?= "/usr/local/kubebuilder/bin"
