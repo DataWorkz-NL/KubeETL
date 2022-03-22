@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= dataworkz/kubeetl:latest # TODO default to right approach (e.g. latest tag)
 # CRD Options
 CRD_OPTIONS ?= "crd"
 KUBEBUILDER_ASSETS_DIR ?= "/usr/local/kubebuilder/bin"
@@ -39,13 +39,17 @@ install: manifests
 uninstall: manifests
 	kustomize build config/crd | kubectl delete -f -
 
-# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests
+# Set the image for the controller
+.PHONY: set-image
+set-image:
 	cd config/manager && kustomize edit set image controller=${IMG}
+
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+deploy: manifests set-image
 	kustomize build config/default | kubectl apply -f -
 
 # Generate quick-start yaml
-.PHONY: quick-start
+.PHONY: quick-start set-image
 quick-start: manifests
 	kustomize build config/crd > manifests/quick-start.yaml
 	kustomize build config/crd_with_webhook > manifests/quick-start-webhook.yaml
