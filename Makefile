@@ -44,7 +44,13 @@ deploy: manifests
 	cd config/manager && kustomize edit set image controller=${IMG}
 	kustomize build config/default | kubectl apply -f -
 
+# Generate quick-start yaml
+.PHONY: quick-start
+quick-start: manifests
+	kustomize build config/crd > manifests/quick-start.yaml
+
 # Generate manifests e.g. CRD, RBAC etc.
+.PHONY: manifests
 manifests: controller-gen hack
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	bin/hack removecrdvalidation config/crd/bases/etl.dataworkz.nl_workflows.yaml
