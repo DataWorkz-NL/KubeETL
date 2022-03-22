@@ -2,10 +2,18 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
+    cert-manager.io/inject-ca-from: $(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   name: connections.etl.dataworkz.nl
 spec:
+  conversion:
+    strategy: Webhook
+    webhookClientConfig:
+      caBundle: Cg==
+      service:
+        name: webhook-service
+        namespace: system
+        path: /convert
   group: etl.dataworkz.nl
   names:
     kind: Connection
@@ -177,10 +185,18 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
+    cert-manager.io/inject-ca-from: $(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   name: datasets.etl.dataworkz.nl
 spec:
+  conversion:
+    strategy: Webhook
+    webhookClientConfig:
+      caBundle: Cg==
+      service:
+        name: webhook-service
+        namespace: system
+        path: /convert
   group: etl.dataworkz.nl
   names:
     kind: DataSet
@@ -1069,6 +1085,18 @@ spec:
   selector:
     control-plane: controller-manager
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubeetl-webhook-service
+  namespace: kubeetl
+spec:
+  ports:
+  - port: 443
+    targetPort: 9443
+  selector:
+    control-plane: controller-manager
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1091,6 +1119,10 @@ spec:
         - /manager
         image: blokje5/kubeetl
         name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
         resources:
           limits:
             cpu: 100m
@@ -1098,4 +1130,82 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
       terminationGracePeriodSeconds: 10
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: kubeetl-serving-cert
+  namespace: kubeetl
+spec:
+  dnsNames:
+  - kubeetl-webhook-service.kubeetl.svc
+  - kubeetl-webhook-service.kubeetl.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: kubeetl-selfsigned-issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: kubeetl-selfsigned-issuer
+  namespace: kubeetl
+spec:
+  selfSigned: {}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: kubeetl-validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: kubeetl-webhook-service
+      namespace: kubeetl
+      path: /validate-v1alpha1-connection
+  failurePolicy: Fail
+  name: connection.dataworkz.nl
+  rules:
+  - apiGroups:
+    - etl.dataworkz.nl
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - connections
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: kubeetl-webhook-service
+      namespace: kubeetl
+      path: /validate-v1alpha1-dataset
+  failurePolicy: Fail
+  name: dataset.dataworkz.nl
+  rules:
+  - apiGroups:
+    - etl.dataworkz.nl
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - datasets
+  sideEffects: None
