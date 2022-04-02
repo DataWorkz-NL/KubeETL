@@ -121,6 +121,7 @@ var _ = BeforeSuite(func(done Done) {
 		Host:    testEnv.WebhookInstallOptions.LocalServingHost,
 		CertDir: testEnv.WebhookInstallOptions.LocalServingCertDir,
 	})
+	Expect(err).NotTo(HaveOccurred())
 
 	By("running webhook server")
 	err = SetupValidatingConnectionWebhookWithManager(k8sManager)

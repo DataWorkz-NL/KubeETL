@@ -162,6 +162,7 @@ func (r *DataSetReconciler) handleHealthCheckUpdate(ctx context.Context, log log
 }
 
 func (r *DataSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	r.Client = mgr.GetClient()
 	wfKind := &source.Kind{Type: &api.Workflow{}}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.DataSet{}).
