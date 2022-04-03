@@ -17,7 +17,7 @@ import (
 
 var cfg *rest.Config
 var k8sClient client.Client
-var provider SecretProvider
+var provider ConnectionProvider
 var testEnv *envtest.Environment
 
 func TestSecretProvider(t *testing.T) {
@@ -46,7 +46,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
 
-	provider = NewSecretProvider(k8sClient)
+	provider = NewConnectionProvider(k8sClient)
 
 	close(done)
 }, 60)
