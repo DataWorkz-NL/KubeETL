@@ -45,3 +45,7 @@ type CronWorkflowSpec struct {
 	// WorkflowMetadata contains some metadata of the workflow to be run
 	WorkflowMetadata *metav1.ObjectMeta `json:"workflowMetadata,omitempty" protobuf:"bytes,9,opt,name=workflowMeta"`
 }
+
+func init() {
+	SchemeBuilder.Register(&CronWorkflow{}, &CronWorkflowList{})
+}

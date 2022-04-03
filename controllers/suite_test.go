@@ -86,6 +86,23 @@ var _ = BeforeSuite(func(done Done) {
 		Scheme:                   k8sManager.GetScheme(),
 		ConnectionInjectionImage: "kubeetl/connection-injector",
 	}).SetupWithManager(k8sManager)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&CronWorkflowReconciler{
+		Client:                   k8sManager.GetClient(),
+		Log:                      ctrl.Log.WithName("controllers").WithName("CronWorkflow"),
+		Scheme:                   k8sManager.GetScheme(),
+		ConnectionInjectionImage: "kubeetl/connection-injector",
+	}).SetupWithManager(k8sManager)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&WorkflowTemplateReconciler{
+		Client:                   k8sManager.GetClient(),
+		Log:                      ctrl.Log.WithName("controllers").WithName("WorkflowTemplate"),
+		Scheme:                   k8sManager.GetScheme(),
+		ConnectionInjectionImage: "kubeetl/connection-injector",
+	}).SetupWithManager(k8sManager)
+	Expect(err).ToNot(HaveOccurred())
 
 	go func() {
 		err = k8sManager.Start(ctrl.SetupSignalHandler())

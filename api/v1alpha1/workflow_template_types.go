@@ -27,3 +27,7 @@ type WorkflowTemplateSpec struct {
 	// WorkflowMetadata contains some metadata of the workflow to be refer
 	WorkflowMetadata *metav1.ObjectMeta `json:"workflowMetadata,omitempty" protobuf:"bytes,2,opt,name=workflowMeta"`
 }
+
+func init() {
+	SchemeBuilder.Register(&WorkflowTemplate{}, &WorkflowTemplateList{})
+}
