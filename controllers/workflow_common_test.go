@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"time"
 
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
@@ -10,11 +9,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	. "github.com/onsi/gomega"
-)
-
-const (
-	timeout  = time.Second * 5
-	interval = time.Second * 1
 )
 
 type workflowTestResources struct {
