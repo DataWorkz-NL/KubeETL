@@ -36,8 +36,8 @@ import (
 	"github.com/dataworkz/kubeetl/api/v1alpha1"
 )
 
-// WorkflowReconciler reconciles a Workflow object
-type WorkflowReconciler struct {
+// CronWorkflowReconciler reconciles a CronWorkflow object
+type CronWorkflowReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
@@ -45,35 +45,36 @@ type WorkflowReconciler struct {
 	ConnectionInjectionImage string
 }
 
-// +kubebuilder:rbac:groups=etl.dataworkz.nl.dataworkz.nl,resources=workflows,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=etl.dataworkz.nl.dataworkz.nl,resources=workflows/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=etl.dataworkz.nl.dataworkz.nl,resources=cronworkflows,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=etl.dataworkz.nl.dataworkz.nl,resources=cronworkflows/status,verbs=get;update;patch
 
-func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *CronWorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("workflow", req.NamespacedName)
 
-	var workflow v1alpha1.Workflow
-	if err := r.Get(ctx, req.NamespacedName, &workflow); err != nil {
+	var cwf v1alpha1.CronWorkflow
+	if err := r.Get(ctx, req.NamespacedName, &cwf); err != nil {
 		if !errors.IsNotFound(err) {
-			log.Error(err, "unable to fetch Workflow")
+			log.Error(err, "unable to fetch CronWorkflow")
 		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	cs := v1alpha1.ConnectionSecret(workflow.Name, workflow.Namespace)
+	cs := v1alpha1.ConnectionSecret(cwf.Name, cwf.Namespace)
+
 	log.Info("creating connection secret", "name", cs.Name, "namespace", cs.Namespace)
 
-	_, err := ctrl.CreateOrUpdate(ctx, r.Client, &cs, func() error { return r.updateSecret(&workflow, &cs) })
+	_, err := ctrl.CreateOrUpdate(ctx, r.Client, &cs, func() error { return r.updateSecret(&cwf, &cs) })
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("error creating workflow connection secret: %w", err)
 	}
 
-	awf := wfv1.Workflow{
+	acwf := wfv1.CronWorkflow{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: workflow.Namespace,
-			Name:      workflow.Name,
+			Name:      cwf.Name,
+			Namespace: cwf.Namespace,
 		},
 	}
-	_, err = ctrl.CreateOrUpdate(ctx, r.Client, &awf, func() error { return r.updateWorkflow(&workflow, &awf) })
+	_, err = ctrl.CreateOrUpdate(ctx, r.Client, &acwf, func() error { return r.updateCronWorkflow(&cwf, &acwf) })
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("error upserting argo workflow: %w", err)
 	}
@@ -81,31 +82,28 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{}, nil
 }
 
-func (r *WorkflowReconciler) updateSecret(workflow *v1alpha1.Workflow, secret *corev1.Secret) error {
-	if err := ctrl.SetControllerReference(workflow, secret, r.Scheme); err != nil {
+func (r *CronWorkflowReconciler) updateSecret(cwf *v1alpha1.CronWorkflow, secret *corev1.Secret) error {
+	if err := ctrl.SetControllerReference(cwf, secret, r.Scheme); err != nil {
 		return fmt.Errorf("error setting owner reference on connection secret: %w", err)
 	}
 	return nil
 }
 
-func (r *WorkflowReconciler) updateWorkflow(workflow *v1alpha1.Workflow, awf *wfv1.Workflow) error {
-	awfSpec, err := createArgoWorkflowSpec(workflow.Spec, awf.Name, r.ConnectionInjectionImage, awf.Namespace)
+func (r *CronWorkflowReconciler) updateCronWorkflow(cwf *v1alpha1.CronWorkflow, acwf *wfv1.CronWorkflow) error {
+	awfSpec, err := createArgoWorkflowSpec(cwf.Spec.WorkflowSpec, acwf.Name, r.ConnectionInjectionImage, acwf.Namespace)
 	if err != nil {
 		return fmt.Errorf("error creating argo workflow spec: %w", err)
 	}
-	awf.Spec = awfSpec
-	if err := ctrl.SetControllerReference(workflow, awf, r.Scheme); err != nil {
+	acwf.Spec.WorkflowSpec = awfSpec
+	if err := ctrl.SetControllerReference(cwf, acwf, r.Scheme); err != nil {
 		return fmt.Errorf("error setting owner reference on workflow: %w", err)
 	}
 
 	return nil
 }
 
-func (r *WorkflowReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	r.Client = mgr.GetClient()
-	r.Scheme = mgr.GetScheme()
-
+func (r *CronWorkflowReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.Workflow{}).
+		For(&v1alpha1.CronWorkflow{}).
 		Complete(r)
 }

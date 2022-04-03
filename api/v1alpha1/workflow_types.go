@@ -2,14 +2,12 @@ package v1alpha1
 
 import (
 	"bytes"
-	"crypto/md5"
 	"fmt"
 	"text/template"
 
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -26,7 +24,7 @@ type WorkflowList struct {
 	Items           []Workflow `json:"items"`
 }
 
-// +kubebuilder:object:root:=true
+// +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
 // Workflow is the schema for the workflows API
@@ -131,37 +129,6 @@ func (ct ContentTemplate) Render(data interface{}) (string, error) {
 
 type InjectableValueType string
 
-func (wf *Workflow) ConnectionSecretName() types.NamespacedName {
-	return types.NamespacedName{
-		Name:      wf.NameWithHash(),
-		Namespace: wf.Namespace,
-	}
-}
-
-// CreateArgoWorkflow creates a new empty Argo Workflow with Name and Namespace configured
-func (wf *Workflow) CreateArgoWorkflow() wfv1.Workflow {
-	return wfv1.Workflow{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      wf.Name,
-			Namespace: wf.Namespace,
-		},
-	}
-}
-
-// NameWithHash returns the workflow name with an md5-hash added as a suffix.
-// This is used prevent naming conflicts when creating Workflow-related resources,
-// such as Connection Secrets
-func (wf *Workflow) NameWithHash() string {
-	m := md5.New()
-	h := m.Sum([]byte(wf.Name))
-
-	return fmt.Sprintf("%s-%x", wf.Name, h)
-}
-
-func (wf *Workflow) ConnectionVolumeName() string {
-	return wf.NameWithHash()
-}
-
 func (iv *InjectableValue) GetType() InjectableValueType {
 	switch {
 	case iv.EnvName != "":
@@ -173,10 +140,10 @@ func (iv *InjectableValue) GetType() InjectableValueType {
 	}
 }
 
-func (wf *Workflow) GetInjectableValueByName(name string) (*InjectableValue, error) {
-	for i, iv := range wf.Spec.InjectableValues {
+func (wfs *WorkflowSpec) GetInjectableValueByName(name string) (*InjectableValue, error) {
+	for i, iv := range wfs.InjectableValues {
 		if iv.Name == name {
-			return &wf.Spec.InjectableValues[i], nil
+			return &wfs.InjectableValues[i], nil
 		}
 	}
 	return nil, fmt.Errorf("no InjectableValue found with name %s", name)

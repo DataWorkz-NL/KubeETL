@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"time"
 
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
@@ -13,8 +15,23 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/dataworkz/kubeetl/api/v1alpha1"
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
 )
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyz"
+
+func RandStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
+func generateWorkflowName() string {
+	return fmt.Sprintf("%s-%s", "default-workflow", RandStringBytes(5))
+}
 
 var _ = Describe("WorkflowReconciler", func() {
 	const timeout = time.Second * 5
@@ -82,8 +99,10 @@ var _ = Describe("WorkflowReconciler", func() {
 	Context("Injections mounted as files", func() {
 		It("Should mount the secret key in templates", func() {
 			ctx := context.Background()
+			wfName := generateWorkflowName()
+
 			key := types.NamespacedName{
-				Name:      "default-workflow",
+				Name:      wfName,
 				Namespace: "default",
 			}
 
@@ -146,14 +165,14 @@ var _ = Describe("WorkflowReconciler", func() {
 				g.Expect(container).ToNot(BeNil())
 				g.Expect(container.Container).ToNot(BeNil())
 
-				iv, err := created.GetInjectableValueByName("injectable-host")
+				iv, err := created.Spec.GetInjectableValueByName("injectable-host")
 				g.Expect(err).ToNot(HaveOccurred())
 
 				containers := []v1.Container{*container.Container, script.Script.Container}
 
 				isInjected := func(container v1.Container) bool {
 					for _, m := range container.VolumeMounts {
-						if m.Name == created.ConnectionVolumeName() &&
+						if m.Name == v1alpha1.ConnectionVolumeName(created.Name) &&
 							m.MountPath == iv.MountPath &&
 							m.SubPath == iv.Name {
 							return true
@@ -175,8 +194,9 @@ var _ = Describe("WorkflowReconciler", func() {
 	Context("Workflow with injections as environment variables", func() {
 		It("Should inject templates in a DAG", func() {
 			ctx := context.Background()
+			wfName := generateWorkflowName()
 			key := types.NamespacedName{
-				Name:      "default-workflow",
+				Name:      wfName,
 				Namespace: "default",
 			}
 
@@ -243,11 +263,11 @@ var _ = Describe("WorkflowReconciler", func() {
 				g.Expect(bar.Script).ToNot(BeNil())
 
 				containers := []v1.Container{*foo.Container, bar.Script.Container}
-				iv, err := created.GetInjectableValueByName("injectable-host")
+				iv, err := created.Spec.GetInjectableValueByName("injectable-host")
 				g.Expect(err).ToNot(HaveOccurred())
 
 				for _, c := range containers {
-					isInjected := envContainsInjectableValue(c.Env, *iv, created.ConnectionSecretName().Name)
+					isInjected := envContainsInjectableValue(c.Env, *iv, v1alpha1.ConnectionSecret(created.Name, created.Namespace).Name)
 					g.Expect(isInjected).To(BeTrue())
 				}
 			}, timeout, interval).Should(Succeed())
@@ -258,8 +278,9 @@ var _ = Describe("WorkflowReconciler", func() {
 
 		It("Should add a volume to a workflow", func() {
 			ctx := context.Background()
+			wfName := generateWorkflowName()
 			key := types.NamespacedName{
-				Name:      "default-workflow",
+				Name:      wfName,
 				Namespace: "default",
 			}
 			spec := api.WorkflowSpec{
@@ -289,10 +310,10 @@ var _ = Describe("WorkflowReconciler", func() {
 				g.Expect(len(res.Spec.Volumes)).To(Equal(1))
 				v := res.Spec.Volumes[0]
 				expected := v1.Volume{
-					Name: created.ConnectionVolumeName(),
+					Name: api.ConnectionVolumeName(created.Name),
 					VolumeSource: v1.VolumeSource{
 						Secret: &v1.SecretVolumeSource{
-							SecretName: created.ConnectionSecretName().Name,
+							SecretName: v1alpha1.ConnectionSecret(created.Name, created.Namespace).Name,
 						},
 					},
 				}
@@ -304,8 +325,9 @@ var _ = Describe("WorkflowReconciler", func() {
 
 		It("Should a connection injection setup task to a workflow", func() {
 			ctx := context.Background()
+			wfName := generateWorkflowName()
 			key := types.NamespacedName{
-				Name:      "default-workflow",
+				Name:      wfName,
 				Namespace: "default",
 			}
 			spec := api.WorkflowSpec{
@@ -340,6 +362,7 @@ var _ = Describe("WorkflowReconciler", func() {
 				g.Expect(len(ep.Steps)).To(Equal(2))
 				g.Expect(ep.Steps[0].Steps[0].Name).To(Equal("run-injection"))
 			}, timeout, interval).Should(Succeed())
+
 			Expect(k8sClient.Delete(ctx, &created)).To(Succeed())
 			Expect(k8sClient.Delete(ctx, &res)).To(Succeed())
 		})
