@@ -523,6 +523,7 @@ status:
     plural: ""
   conditions: []
   storedVersions: []
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -1339,3 +1340,4 @@ webhooks:
     resources:
     - datasets
   sideEffects: None
+---

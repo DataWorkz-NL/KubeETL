@@ -507,6 +507,7 @@ status:
     plural: ""
   conditions: []
   storedVersions: []
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -1229,3 +1230,4 @@ spec:
             cpu: 100m
             memory: 20Mi
       terminationGracePeriodSeconds: 10
+---

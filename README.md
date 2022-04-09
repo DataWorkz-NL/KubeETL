@@ -2,7 +2,9 @@
 
 ## Installation
 
-TODO fix the issues in the kustomization
+KubeETL provide quick-start files in the `manifests/` folder. If you want to further customize your configuration we recommend creating your own kustomize overlay.
+
+For the default installation, execute the following commands:
 
 ```console
 kubectl create namespace kubeetl

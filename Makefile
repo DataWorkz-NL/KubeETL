@@ -52,9 +52,13 @@ deploy: manifests set-image
 .PHONY: quick-start set-image
 quick-start: manifests
 	kustomize build config/crd > manifests/quick-start.yaml
+	echo "---" >> manifests/quick-start.yaml
 	kustomize build config/overlays/crd/webhook > manifests/quick-start-webhook.yaml
+	echo "---" >> manifests/quick-start-webhook.yaml
 	kustomize build config/overlays/default >> manifests/quick-start.yaml
+	echo "---" >> manifests/quick-start.yaml
 	kustomize build config/overlays/with_webhook >> manifests/quick-start-webhook.yaml
+	echo "---" >> manifests/quick-start-webhook.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
