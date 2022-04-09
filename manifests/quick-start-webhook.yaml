@@ -28,10 +28,14 @@ spec:
         description: Connection is the Schema for the connections API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -40,12 +44,14 @@ spec:
             properties:
               credentials:
                 additionalProperties:
-                  description: Value contains either a direct value or a value from a source
+                  description: Value contains either a direct value or a value from
+                    a source
                   properties:
                     value:
                       type: string
                     valueFrom:
-                      description: Source for the value. Cannot be used if Value is already defined
+                      description: Source for the value. Cannot be used if Value is
+                        already defined
                       properties:
                         configMapKeyRef:
                           description: Selects a key of a ConfigMap.
@@ -54,10 +60,12 @@ spec:
                               description: The key to select.
                               type: string
                             name:
-                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
                               type: string
                             optional:
-                              description: Specify whether the ConfigMap or its key must be defined
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
                               type: boolean
                           required:
                           - key
@@ -66,23 +74,29 @@ spec:
                           description: Selects a key of a secret in the pod's namespace
                           properties:
                             key:
-                              description: The key of the secret to select from.  Must be a valid secret key.
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
                               type: string
                             name:
-                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
                               type: string
                             optional:
-                              description: Specify whether the Secret or its key must be defined
+                              description: Specify whether the Secret or its key must
+                                be defined
                               type: boolean
                           required:
                           - key
                           type: object
                       type: object
                   type: object
-                description: All required information to achieve the connection is stored in the credentials
+                description: All required information to achieve the connection is
+                  stored in the credentials
                 type: object
               type:
-                description: Type contains the type of protocol that should be utilised in this connection. This can be used for a dynamic determination of what source is being connected to.
+                description: Type contains the type of protocol that should be utilised
+                  in this connection. This can be used for a dynamic determination
+                  of what source is being connected to.
                 type: string
             required:
             - credentials
@@ -119,13 +133,18 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ConnectionType defines the structure, validation and behavior of a connection
+        description: ConnectionType defines the structure, validation and behavior
+          of a connection
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -133,23 +152,29 @@ spec:
             description: ConnectionTypeSpec defines the desired state of ConnectionType
             properties:
               allowExtraFields:
-                description: Allow extra fields to be submitted that do not match any CredentialField
+                description: Allow extra fields to be submitted that do not match
+                  any CredentialField
                 type: boolean
               fields:
-                description: CredentialFields used in this ConnectionTypeSpec. Used to validate input.
+                description: CredentialFields used in this ConnectionTypeSpec. Used
+                  to validate input.
                 items:
                   properties:
                     envName:
-                      description: EnvKey is what the environment variable for this field will be called
+                      description: EnvKey is what the environment variable for this
+                        field will be called
                       type: string
                     name:
-                      description: Name for this CredentialField. Used as keys in the Credentials-map
+                      description: Name for this CredentialField. Used as keys in
+                        the Credentials-map
                       type: string
                     required:
                       description: Whether or not this field must be filled
                       type: boolean
                     sensitive:
-                      description: Whether or not this field is sensitive. If a field is sensitive, the only valid ValueSource is a SecretKeyRef. Plain text values and ConfigMapKeyRefs are not allowed.
+                      description: Whether or not this field is sensitive. If a field
+                        is sensitive, the only valid ValueSource is a SecretKeyRef.
+                        Plain text values and ConfigMapKeyRefs are not allowed.
                       type: boolean
                     validation:
                       description: Optional methods of validating the field's value
@@ -211,10 +236,14 @@ spec:
         description: DataSet is the Schema for the datasets API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -222,20 +251,29 @@ spec:
             description: DataSetSpec defines the desired state of DataSet
             properties:
               connection:
-                description: Connection defines the connection to use to retrieve this dataset
+                description: Connection defines the connection to use to retrieve
+                  this dataset
                 properties:
                   connectionFrom:
                     properties:
                       name:
-                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          TODO: Add other useful fields. apiVersion, kind, uid?'
                         type: string
                       optional:
-                        description: Specify whether the Connection must be defined or not.
+                        description: Specify whether the Connection must be defined
+                          or not.
                         type: boolean
                     type: object
                 type: object
               healthCheck:
-                description: HealthCheck can be configured to perform a periodic health check on the data. E.g. this can be used to monitor the DataSet quality or the availability. HealthCheck is a WorkflowReference and the DataSet reconciler will use the latest workflow run as an indication of DataSet health. This allows users to define a workflow that performs e.g. a Data Quality check and fail the workflow when the Data Quality is below a user defined threshold.
+                description: HealthCheck can be configured to perform a periodic health
+                  check on the data. E.g. this can be used to monitor the DataSet
+                  quality or the availability. HealthCheck is a WorkflowReference
+                  and the DataSet reconciler will use the latest workflow run as an
+                  indication of DataSet health. This allows users to define a workflow
+                  that performs e.g. a Data Quality check and fail the workflow when
+                  the Data Quality is below a user defined threshold.
                 properties:
                   name:
                     description: '`name` is the name of the workflow. Required'
@@ -249,12 +287,14 @@ spec:
                 type: object
               metadata:
                 additionalProperties:
-                  description: Value contains either a direct value or a value from a source
+                  description: Value contains either a direct value or a value from
+                    a source
                   properties:
                     value:
                       type: string
                     valueFrom:
-                      description: Source for the value. Cannot be used if Value is already defined
+                      description: Source for the value. Cannot be used if Value is
+                        already defined
                       properties:
                         configMapKeyRef:
                           description: Selects a key of a ConfigMap.
@@ -263,10 +303,12 @@ spec:
                               description: The key to select.
                               type: string
                             name:
-                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
                               type: string
                             optional:
-                              description: Specify whether the ConfigMap or its key must be defined
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
                               type: boolean
                           required:
                           - key
@@ -275,23 +317,29 @@ spec:
                           description: Selects a key of a secret in the pod's namespace
                           properties:
                             key:
-                              description: The key of the secret to select from.  Must be a valid secret key.
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
                               type: string
                             name:
-                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
                               type: string
                             optional:
-                              description: Specify whether the Secret or its key must be defined
+                              description: Specify whether the Secret or its key must
+                                be defined
                               type: boolean
                           required:
                           - key
                           type: object
                       type: object
                   type: object
-                description: Metadata contains any additional information that would be required to fetch the DataSet from the connection, such as a file name or a table name.
+                description: Metadata contains any additional information that would
+                  be required to fetch the DataSet from the connection, such as a
+                  file name or a table name.
                 type: object
               storageType:
-                description: StorageType defines whether the DataSet is persisted or ephemeral
+                description: StorageType defines whether the DataSet is persisted
+                  or ephemeral
                 enum:
                 - Persistent
                 - Ephemeral
@@ -307,7 +355,8 @@ spec:
             description: DataSetStatus defines the observed state of DataSet
             properties:
               healthy:
-                description: Healthy indicates the status of the recent DataSet health check.
+                description: Healthy indicates the status of the recent DataSet health
+                  check.
                 enum:
                 - Healthy
                 - Unhealthy
@@ -348,39 +397,51 @@ spec:
         description: DataSetType defines the structure of a DataSet
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
             properties:
               metadata:
-                description: MetadataFields defines the structure of the metadata for the DataSet
+                description: MetadataFields defines the structure of the metadata
+                  for the DataSet
                 properties:
                   allowExtraFields:
-                    description: Allow extra fields to be submitted that do not match any CredentialField
+                    description: Allow extra fields to be submitted that do not match
+                      any CredentialField
                     type: boolean
                   fields:
                     description: List of fields specified for validation.
                     items:
                       properties:
                         envName:
-                          description: EnvKey is what the environment variable for this field will be called
+                          description: EnvKey is what the environment variable for
+                            this field will be called
                           type: string
                         name:
-                          description: Name for this CredentialField. Used as keys in the Credentials-map
+                          description: Name for this CredentialField. Used as keys
+                            in the Credentials-map
                           type: string
                         required:
                           description: Whether or not this field must be filled
                           type: boolean
                         sensitive:
-                          description: Whether or not this field is sensitive. If a field is sensitive, the only valid ValueSource is a SecretKeyRef. Plain text values and ConfigMapKeyRefs are not allowed.
+                          description: Whether or not this field is sensitive. If
+                            a field is sensitive, the only valid ValueSource is a
+                            SecretKeyRef. Plain text values and ConfigMapKeyRefs are
+                            not allowed.
                           type: boolean
                         validation:
-                          description: Optional methods of validating the field's value
+                          description: Optional methods of validating the field's
+                            value
                           properties:
                             maxLength:
                               format: int32
@@ -432,10 +493,14 @@ spec:
         description: Workflow is the schema for the workflows API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -463,7 +528,7 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-  name: system
+  name: kubeetl
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -487,10 +552,14 @@ spec:
         description: Connection is the Schema for the connections API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -499,12 +568,14 @@ spec:
             properties:
               credentials:
                 additionalProperties:
-                  description: Value contains either a direct value or a value from a source
+                  description: Value contains either a direct value or a value from
+                    a source
                   properties:
                     value:
                       type: string
                     valueFrom:
-                      description: Source for the value. Cannot be used if Value is already defined
+                      description: Source for the value. Cannot be used if Value is
+                        already defined
                       properties:
                         configMapKeyRef:
                           description: Selects a key of a ConfigMap.
@@ -513,10 +584,12 @@ spec:
                               description: The key to select.
                               type: string
                             name:
-                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
                               type: string
                             optional:
-                              description: Specify whether the ConfigMap or its key must be defined
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
                               type: boolean
                           required:
                           - key
@@ -525,23 +598,29 @@ spec:
                           description: Selects a key of a secret in the pod's namespace
                           properties:
                             key:
-                              description: The key of the secret to select from.  Must be a valid secret key.
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
                               type: string
                             name:
-                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
                               type: string
                             optional:
-                              description: Specify whether the Secret or its key must be defined
+                              description: Specify whether the Secret or its key must
+                                be defined
                               type: boolean
                           required:
                           - key
                           type: object
                       type: object
                   type: object
-                description: All required information to achieve the connection is stored in the credentials
+                description: All required information to achieve the connection is
+                  stored in the credentials
                 type: object
               type:
-                description: Type contains the type of protocol that should be utilised in this connection. This can be used for a dynamic determination of what source is being connected to.
+                description: Type contains the type of protocol that should be utilised
+                  in this connection. This can be used for a dynamic determination
+                  of what source is being connected to.
                 type: string
             required:
             - credentials
@@ -578,13 +657,18 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ConnectionType defines the structure, validation and behavior of a connection
+        description: ConnectionType defines the structure, validation and behavior
+          of a connection
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -592,23 +676,29 @@ spec:
             description: ConnectionTypeSpec defines the desired state of ConnectionType
             properties:
               allowExtraFields:
-                description: Allow extra fields to be submitted that do not match any CredentialField
+                description: Allow extra fields to be submitted that do not match
+                  any CredentialField
                 type: boolean
               fields:
-                description: CredentialFields used in this ConnectionTypeSpec. Used to validate input.
+                description: CredentialFields used in this ConnectionTypeSpec. Used
+                  to validate input.
                 items:
                   properties:
                     envName:
-                      description: EnvKey is what the environment variable for this field will be called
+                      description: EnvKey is what the environment variable for this
+                        field will be called
                       type: string
                     name:
-                      description: Name for this CredentialField. Used as keys in the Credentials-map
+                      description: Name for this CredentialField. Used as keys in
+                        the Credentials-map
                       type: string
                     required:
                       description: Whether or not this field must be filled
                       type: boolean
                     sensitive:
-                      description: Whether or not this field is sensitive. If a field is sensitive, the only valid ValueSource is a SecretKeyRef. Plain text values and ConfigMapKeyRefs are not allowed.
+                      description: Whether or not this field is sensitive. If a field
+                        is sensitive, the only valid ValueSource is a SecretKeyRef.
+                        Plain text values and ConfigMapKeyRefs are not allowed.
                       type: boolean
                     validation:
                       description: Optional methods of validating the field's value
@@ -662,10 +752,14 @@ spec:
         description: DataSet is the Schema for the datasets API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -673,20 +767,29 @@ spec:
             description: DataSetSpec defines the desired state of DataSet
             properties:
               connection:
-                description: Connection defines the connection to use to retrieve this dataset
+                description: Connection defines the connection to use to retrieve
+                  this dataset
                 properties:
                   connectionFrom:
                     properties:
                       name:
-                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          TODO: Add other useful fields. apiVersion, kind, uid?'
                         type: string
                       optional:
-                        description: Specify whether the Connection must be defined or not.
+                        description: Specify whether the Connection must be defined
+                          or not.
                         type: boolean
                     type: object
                 type: object
               healthCheck:
-                description: HealthCheck can be configured to perform a periodic health check on the data. E.g. this can be used to monitor the DataSet quality or the availability. HealthCheck is a WorkflowReference and the DataSet reconciler will use the latest workflow run as an indication of DataSet health. This allows users to define a workflow that performs e.g. a Data Quality check and fail the workflow when the Data Quality is below a user defined threshold.
+                description: HealthCheck can be configured to perform a periodic health
+                  check on the data. E.g. this can be used to monitor the DataSet
+                  quality or the availability. HealthCheck is a WorkflowReference
+                  and the DataSet reconciler will use the latest workflow run as an
+                  indication of DataSet health. This allows users to define a workflow
+                  that performs e.g. a Data Quality check and fail the workflow when
+                  the Data Quality is below a user defined threshold.
                 properties:
                   name:
                     description: '`name` is the name of the workflow. Required'
@@ -700,12 +803,14 @@ spec:
                 type: object
               metadata:
                 additionalProperties:
-                  description: Value contains either a direct value or a value from a source
+                  description: Value contains either a direct value or a value from
+                    a source
                   properties:
                     value:
                       type: string
                     valueFrom:
-                      description: Source for the value. Cannot be used if Value is already defined
+                      description: Source for the value. Cannot be used if Value is
+                        already defined
                       properties:
                         configMapKeyRef:
                           description: Selects a key of a ConfigMap.
@@ -714,10 +819,12 @@ spec:
                               description: The key to select.
                               type: string
                             name:
-                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
                               type: string
                             optional:
-                              description: Specify whether the ConfigMap or its key must be defined
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
                               type: boolean
                           required:
                           - key
@@ -726,23 +833,29 @@ spec:
                           description: Selects a key of a secret in the pod's namespace
                           properties:
                             key:
-                              description: The key of the secret to select from.  Must be a valid secret key.
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
                               type: string
                             name:
-                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
                               type: string
                             optional:
-                              description: Specify whether the Secret or its key must be defined
+                              description: Specify whether the Secret or its key must
+                                be defined
                               type: boolean
                           required:
                           - key
                           type: object
                       type: object
                   type: object
-                description: Metadata contains any additional information that would be required to fetch the DataSet from the connection, such as a file name or a table name.
+                description: Metadata contains any additional information that would
+                  be required to fetch the DataSet from the connection, such as a
+                  file name or a table name.
                 type: object
               storageType:
-                description: StorageType defines whether the DataSet is persisted or ephemeral
+                description: StorageType defines whether the DataSet is persisted
+                  or ephemeral
                 enum:
                 - Persistent
                 - Ephemeral
@@ -758,7 +871,8 @@ spec:
             description: DataSetStatus defines the observed state of DataSet
             properties:
               healthy:
-                description: Healthy indicates the status of the recent DataSet health check.
+                description: Healthy indicates the status of the recent DataSet health
+                  check.
                 enum:
                 - Healthy
                 - Unhealthy
@@ -799,39 +913,51 @@ spec:
         description: DataSetType defines the structure of a DataSet
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
             properties:
               metadata:
-                description: MetadataFields defines the structure of the metadata for the DataSet
+                description: MetadataFields defines the structure of the metadata
+                  for the DataSet
                 properties:
                   allowExtraFields:
-                    description: Allow extra fields to be submitted that do not match any CredentialField
+                    description: Allow extra fields to be submitted that do not match
+                      any CredentialField
                     type: boolean
                   fields:
                     description: List of fields specified for validation.
                     items:
                       properties:
                         envName:
-                          description: EnvKey is what the environment variable for this field will be called
+                          description: EnvKey is what the environment variable for
+                            this field will be called
                           type: string
                         name:
-                          description: Name for this CredentialField. Used as keys in the Credentials-map
+                          description: Name for this CredentialField. Used as keys
+                            in the Credentials-map
                           type: string
                         required:
                           description: Whether or not this field must be filled
                           type: boolean
                         sensitive:
-                          description: Whether or not this field is sensitive. If a field is sensitive, the only valid ValueSource is a SecretKeyRef. Plain text values and ConfigMapKeyRefs are not allowed.
+                          description: Whether or not this field is sensitive. If
+                            a field is sensitive, the only valid ValueSource is a
+                            SecretKeyRef. Plain text values and ConfigMapKeyRefs are
+                            not allowed.
                           type: boolean
                         validation:
-                          description: Optional methods of validating the field's value
+                          description: Optional methods of validating the field's
+                            value
                           properties:
                             maxLength:
                               format: int32
@@ -883,10 +1009,14 @@ spec:
         description: Workflow is the schema for the workflows API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -1117,7 +1247,7 @@ spec:
       containers:
       - command:
         - /manager
-        image: blokje5/kubeetl
+        image: dataworkz/kubeetl
         name: manager
         ports:
         - containerPort: 9443
