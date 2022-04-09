@@ -46,15 +46,15 @@ set-image:
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests set-image
-	kustomize build config/default | kubectl apply -f -
+	kustomize build config/overlays/default | kubectl apply -f -
 
 # Generate quick-start yaml
 .PHONY: quick-start set-image
 quick-start: manifests
 	kustomize build config/crd > manifests/quick-start.yaml
 	kustomize build config/overlays/crd/webhook > manifests/quick-start-webhook.yaml
-	kustomize build config/default >> manifests/quick-start.yaml
-	kustomize build config/with_webhook >> manifests/quick-start-webhook.yaml
+	kustomize build config/overlays/default >> manifests/quick-start.yaml
+	kustomize build config/overlays/with_webhook >> manifests/quick-start-webhook.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests

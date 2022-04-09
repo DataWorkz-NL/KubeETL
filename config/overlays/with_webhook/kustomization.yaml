@@ -13,16 +13,16 @@ namePrefix: kubeetl-
 #  someName: someValue
 
 bases:
-- ../crd
-- ../rbac
-- ../manager
+- ../../crd
+- ../../rbac
+- ../../manager
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in 
 # crd/kustomization.yaml
-- ../webhook
+- ../../webhook
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'. 'WEBHOOK' components are required.
-- ../certmanager
+- ../../certmanager
 # [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'. 
-#- ../prometheus
+#- ../../prometheus
 
 patchesStrategicMerge:
   # Protect the /metrics endpoint by putting it behind auth.
