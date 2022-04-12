@@ -55,7 +55,7 @@ func NewInjectionCommand() *cobra.Command {
 			client, err := client.New(config, client.Options{Scheme: scheme})
 			er(err)
 
-			p := provider.NewConnectionProvider(client)
+			p := provider.NewSecretProvider(client)
 
 			err = p.ProvideWorkflowSecret(workflow, namespace)
 			er(err)
