@@ -8,6 +8,7 @@ import (
 	"github.com/dataworkz/kubeetl/listers"
 	"github.com/dataworkz/kubeetl/pkg/util"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -39,8 +40,9 @@ func (cp *secretProvider) ProvideWorkflowSecret(workflowName, workflowNamespace 
 	}
 
 	secret := corev1.Secret{}
-	if err := cp.client.Get(ctx, wf.ConnectionSecretName(), &secret); err != nil {
-		return fmt.Errorf("failed to find connection secret with name %s: %w", wf.ConnectionSecretName(), err)
+	m := v1alpha1.ConnectionSecret(wf.Namespace, wf.Name).ObjectMeta
+	if err := cp.client.Get(ctx, types.NamespacedName{Name: m.Name, Namespace: m.Namespace}, &secret); err != nil {
+		return fmt.Errorf("failed to find connection secret with name %s: %w", m.Name, err)
 	}
 
 	if err := cp.populateSecret(ctx, &secret, wf); err != nil {

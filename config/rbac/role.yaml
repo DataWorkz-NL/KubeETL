@@ -41,6 +41,26 @@ rules:
 - apiGroups:
   - etl.dataworkz.nl.dataworkz.nl
   resources:
+  - cronworkflows
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - cronworkflows/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
   - workflows
   verbs:
   - create
@@ -54,6 +74,26 @@ rules:
   - etl.dataworkz.nl.dataworkz.nl
   resources:
   - workflows/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - workflowtemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - workflowtemplates/status
   verbs:
   - get
   - patch

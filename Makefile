@@ -48,6 +48,8 @@ deploy: manifests
 manifests: controller-gen hack
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	bin/hack removecrdvalidation config/crd/bases/etl.dataworkz.nl_workflows.yaml
+	bin/hack removecrdvalidation config/crd/bases/etl.dataworkz.nl_cronworkflows.yaml
+	bin/hack removecrdvalidation config/crd/bases/etl.dataworkz.nl_workflowtemplates.yaml
 
 # Run go fmt against code
 fmt:

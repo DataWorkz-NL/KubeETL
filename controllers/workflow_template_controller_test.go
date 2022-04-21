@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
 	"time"
 
 	wfv1 "github.com/argoproj/argo/v2/pkg/apis/workflow/v1alpha1"
@@ -19,25 +17,7 @@ import (
 	api "github.com/dataworkz/kubeetl/api/v1alpha1"
 )
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyz"
-
-func RandStringBytes(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
-}
-
-func randomSuffix(s string) string {
-	return fmt.Sprintf("%s-%s", s, RandStringBytes(5))
-}
-
-func generateWorkflowName() string {
-	return fmt.Sprintf("%s-%s", "default-workflow", RandStringBytes(5))
-}
-
-var _ = Describe("WorkflowReconciler", func() {
+var _ = Describe("WorkflowTemplateReconciler", func() {
 	const timeout = time.Second * 5
 	const interval = time.Second * 1
 	var resources workflowTestResources
@@ -99,17 +79,17 @@ var _ = Describe("WorkflowReconciler", func() {
 				},
 			}
 
-			created := api.Workflow{
+			created := api.WorkflowTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      key.Name,
 					Namespace: key.Namespace,
 				},
-				Spec: spec,
+				Spec: api.WorkflowTemplateSpec{WorkflowSpec: spec},
 			}
 
 			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
 
-			var res wfv1.Workflow
+			var res wfv1.WorkflowTemplate
 			Eventually(func(g Gomega) {
 				g.Expect(k8sClient.Get(ctx, key, &res)).Should(Succeed())
 
@@ -196,17 +176,17 @@ var _ = Describe("WorkflowReconciler", func() {
 				},
 			}
 
-			created := api.Workflow{
+			created := api.WorkflowTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      key.Name,
 					Namespace: key.Namespace,
 				},
-				Spec: spec,
+				Spec: api.WorkflowTemplateSpec{WorkflowSpec: spec},
 			}
 
 			Expect(k8sClient.Create(ctx, &created)).Should(Succeed())
 
-			var res wfv1.Workflow
+			var res wfv1.WorkflowTemplate
 			Eventually(func(g Gomega) {
 				g.Expect(k8sClient.Get(ctx, key, &res)).Should(Succeed())
 
@@ -250,17 +230,17 @@ var _ = Describe("WorkflowReconciler", func() {
 				},
 				ArgoWorkflowSpec: wfv1.WorkflowSpec{},
 			}
-			created := api.Workflow{
+			created := api.WorkflowTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      key.Name,
 					Namespace: key.Namespace,
 				},
-				Spec: spec,
+				Spec: api.WorkflowTemplateSpec{WorkflowSpec: spec},
 			}
 
 			Expect(k8sClient.Create(ctx, &created)).To(Succeed())
 
-			var res wfv1.Workflow
+			var res wfv1.WorkflowTemplate
 			Eventually(func(g Gomega) {
 				g.Expect(k8sClient.Get(ctx, key, &res)).To(Succeed())
 				g.Expect(len(res.Spec.Volumes)).To(Equal(1))
@@ -297,17 +277,17 @@ var _ = Describe("WorkflowReconciler", func() {
 				},
 				ArgoWorkflowSpec: wfv1.WorkflowSpec{},
 			}
-			created := api.Workflow{
+			created := api.WorkflowTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      key.Name,
 					Namespace: key.Namespace,
 				},
-				Spec: spec,
+				Spec: api.WorkflowTemplateSpec{WorkflowSpec: spec},
 			}
 
 			Expect(k8sClient.Create(ctx, &created)).To(Succeed())
 
-			var res wfv1.Workflow
+			var res wfv1.WorkflowTemplate
 			Eventually(func(g Gomega) {
 				g.Expect(k8sClient.Get(ctx, key, &res)).To(Succeed())
 				g.Expect(res.Spec.Entrypoint).To(Equal("entrypoint"))
@@ -324,16 +304,3 @@ var _ = Describe("WorkflowReconciler", func() {
 		})
 	})
 })
-
-func envContainsInjectableValue(env []v1.EnvVar, iv api.InjectableValue, connectionSecretName string) bool {
-	for _, e := range env {
-		if e.Name == iv.EnvName {
-			vf := e.ValueFrom
-			return vf != nil &&
-				vf.SecretKeyRef != nil &&
-				vf.SecretKeyRef.Key == iv.Name &&
-				vf.SecretKeyRef.Name == connectionSecretName
-		}
-	}
-	return false
-}
