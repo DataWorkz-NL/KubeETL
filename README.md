@@ -8,5 +8,5 @@ For the default installation, execute the following commands:
 
 ```console
 kubectl create namespace kubeetl
-kubectl apply -n kubeetl -f manifests/quick-start.yaml
+kubectl apply -n kubeetl -f https://raw.githubusercontent.com/DataWorkz-NL/KubeETL/manifests/quick-start.yaml
 ```
