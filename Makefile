@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= ghcr.io/dataworkz-nl:main # TODO default to right approach (e.g. latest tag from github)
 # CRD Options
 CRD_OPTIONS ?= "crd"
 KUBEBUILDER_ASSETS_DIR ?= "/usr/local/kubebuilder/bin"
@@ -39,12 +39,29 @@ install: manifests
 uninstall: manifests
 	kustomize build config/crd | kubectl delete -f -
 
-# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests
+# Set the image for the controller
+.PHONY: set-image
+set-image:
 	cd config/manager && kustomize edit set image controller=${IMG}
-	kustomize build config/default | kubectl apply -f -
+
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+deploy: manifests set-image
+	kustomize build config/overlays/default | kubectl apply -f -
+
+# Generate quick-start yaml
+.PHONY: quick-start set-image
+quick-start: manifests
+	kustomize build config/crd > manifests/quick-start.yaml
+	echo "---" >> manifests/quick-start.yaml
+	kustomize build config/overlays/crd/webhook > manifests/quick-start-webhook.yaml
+	echo "---" >> manifests/quick-start-webhook.yaml
+	kustomize build config/overlays/default >> manifests/quick-start.yaml
+	echo "---" >> manifests/quick-start.yaml
+	kustomize build config/overlays/with_webhook >> manifests/quick-start-webhook.yaml
+	echo "---" >> manifests/quick-start-webhook.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
+.PHONY: manifests
 manifests: controller-gen hack
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	bin/hack removecrdvalidation config/crd/bases/etl.dataworkz.nl_workflows.yaml

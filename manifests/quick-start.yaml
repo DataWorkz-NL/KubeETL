@@ -1,0 +1,1233 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: connections.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: Connection
+    listKind: ConnectionList
+    plural: connections
+    singular: connection
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Connection is the Schema for the connections API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ConnectionSpec defines the desired state of Connection
+            properties:
+              credentials:
+                additionalProperties:
+                  description: Value contains either a direct value or a value from
+                    a source
+                  properties:
+                    value:
+                      type: string
+                    valueFrom:
+                      description: Source for the value. Cannot be used if Value is
+                        already defined
+                      properties:
+                        configMapKeyRef:
+                          description: Selects a key of a ConfigMap.
+                          properties:
+                            key:
+                              description: The key to select.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                        secretKeyRef:
+                          description: Selects a key of a secret in the pod's namespace
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                      type: object
+                  type: object
+                description: All required information to achieve the connection is
+                  stored in the credentials
+                type: object
+              type:
+                description: Type contains the type of protocol that should be utilised
+                  in this connection. This can be used for a dynamic determination
+                  of what source is being connected to.
+                type: string
+            required:
+            - credentials
+            type: object
+          status:
+            description: ConnectionStatus defines the observed state of Connection
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: connectiontypes.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: ConnectionType
+    listKind: ConnectionTypeList
+    plural: connectiontypes
+    singular: connectiontype
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ConnectionType defines the structure, validation and behavior
+          of a connection
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ConnectionTypeSpec defines the desired state of ConnectionType
+            properties:
+              allowExtraFields:
+                description: Allow extra fields to be submitted that do not match
+                  any CredentialField
+                type: boolean
+              fields:
+                description: CredentialFields used in this ConnectionTypeSpec. Used
+                  to validate input.
+                items:
+                  properties:
+                    envName:
+                      description: EnvKey is what the environment variable for this
+                        field will be called
+                      type: string
+                    name:
+                      description: Name for this CredentialField. Used as keys in
+                        the Credentials-map
+                      type: string
+                    required:
+                      description: Whether or not this field must be filled
+                      type: boolean
+                    sensitive:
+                      description: Whether or not this field is sensitive. If a field
+                        is sensitive, the only valid ValueSource is a SecretKeyRef.
+                        Plain text values and ConfigMapKeyRefs are not allowed.
+                      type: boolean
+                    validation:
+                      description: Optional methods of validating the field's value
+                      properties:
+                        maxLength:
+                          format: int32
+                          type: integer
+                        minLength:
+                          format: int32
+                          type: integer
+                        regex:
+                          description: A regex pattern, must conform to RE2 syntax
+                          type: string
+                      type: object
+                  required:
+                  - envName
+                  - name
+                  - required
+                  type: object
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: datasets.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: DataSet
+    listKind: DataSetList
+    plural: datasets
+    singular: dataset
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: DataSet is the Schema for the datasets API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DataSetSpec defines the desired state of DataSet
+            properties:
+              connection:
+                description: Connection defines the connection to use to retrieve
+                  this dataset
+                properties:
+                  connectionFrom:
+                    properties:
+                      name:
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          TODO: Add other useful fields. apiVersion, kind, uid?'
+                        type: string
+                      optional:
+                        description: Specify whether the Connection must be defined
+                          or not.
+                        type: boolean
+                    type: object
+                type: object
+              healthCheck:
+                description: HealthCheck can be configured to perform a periodic health
+                  check on the data. E.g. this can be used to monitor the DataSet
+                  quality or the availability. HealthCheck is a WorkflowReference
+                  and the DataSet reconciler will use the latest workflow run as an
+                  indication of DataSet health. This allows users to define a workflow
+                  that performs e.g. a Data Quality check and fail the workflow when
+                  the Data Quality is below a user defined threshold.
+                properties:
+                  name:
+                    description: '`name` is the name of the workflow. Required'
+                    type: string
+                  namespace:
+                    description: '`namespace` is the namespace of the workflow. Required'
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
+              metadata:
+                additionalProperties:
+                  description: Value contains either a direct value or a value from
+                    a source
+                  properties:
+                    value:
+                      type: string
+                    valueFrom:
+                      description: Source for the value. Cannot be used if Value is
+                        already defined
+                      properties:
+                        configMapKeyRef:
+                          description: Selects a key of a ConfigMap.
+                          properties:
+                            key:
+                              description: The key to select.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                        secretKeyRef:
+                          description: Selects a key of a secret in the pod's namespace
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                      type: object
+                  type: object
+                description: Metadata contains any additional information that would
+                  be required to fetch the DataSet from the connection, such as a
+                  file name or a table name.
+                type: object
+              storageType:
+                description: StorageType defines whether the DataSet is persisted
+                  or ephemeral
+                enum:
+                - Persistent
+                - Ephemeral
+                type: string
+              type:
+                description: Type defines the type of the DataSet (e.g. MySQL table)
+                type: string
+            required:
+            - storageType
+            - type
+            type: object
+          status:
+            description: DataSetStatus defines the observed state of DataSet
+            properties:
+              healthy:
+                description: Healthy indicates the status of the recent DataSet health
+                  check.
+                enum:
+                - Healthy
+                - Unhealthy
+                - Unknown
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: datasettypes.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: DataSetType
+    listKind: DataSetTypeList
+    plural: datasettypes
+    singular: datasettype
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: DataSetType defines the structure of a DataSet
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              metadata:
+                description: MetadataFields defines the structure of the metadata
+                  for the DataSet
+                properties:
+                  allowExtraFields:
+                    description: Allow extra fields to be submitted that do not match
+                      any CredentialField
+                    type: boolean
+                  fields:
+                    description: List of fields specified for validation.
+                    items:
+                      properties:
+                        envName:
+                          description: EnvKey is what the environment variable for
+                            this field will be called
+                          type: string
+                        name:
+                          description: Name for this CredentialField. Used as keys
+                            in the Credentials-map
+                          type: string
+                        required:
+                          description: Whether or not this field must be filled
+                          type: boolean
+                        sensitive:
+                          description: Whether or not this field is sensitive. If
+                            a field is sensitive, the only valid ValueSource is a
+                            SecretKeyRef. Plain text values and ConfigMapKeyRefs are
+                            not allowed.
+                          type: boolean
+                        validation:
+                          description: Optional methods of validating the field's
+                            value
+                          properties:
+                            maxLength:
+                              format: int32
+                              type: integer
+                            minLength:
+                              format: int32
+                              type: integer
+                            regex:
+                              description: A regex pattern, must conform to RE2 syntax
+                              type: string
+                          type: object
+                      required:
+                      - envName
+                      - name
+                      - required
+                      type: object
+                    type: array
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: workflows.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: Workflow
+    listKind: WorkflowList
+    plural: workflows
+    singular: workflow
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Workflow is the schema for the workflows API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: kubeetl
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: connections.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: Connection
+    listKind: ConnectionList
+    plural: connections
+    singular: connection
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Connection is the Schema for the connections API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ConnectionSpec defines the desired state of Connection
+            properties:
+              credentials:
+                additionalProperties:
+                  description: Value contains either a direct value or a value from
+                    a source
+                  properties:
+                    value:
+                      type: string
+                    valueFrom:
+                      description: Source for the value. Cannot be used if Value is
+                        already defined
+                      properties:
+                        configMapKeyRef:
+                          description: Selects a key of a ConfigMap.
+                          properties:
+                            key:
+                              description: The key to select.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                        secretKeyRef:
+                          description: Selects a key of a secret in the pod's namespace
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                      type: object
+                  type: object
+                description: All required information to achieve the connection is
+                  stored in the credentials
+                type: object
+              type:
+                description: Type contains the type of protocol that should be utilised
+                  in this connection. This can be used for a dynamic determination
+                  of what source is being connected to.
+                type: string
+            required:
+            - credentials
+            type: object
+          status:
+            description: ConnectionStatus defines the observed state of Connection
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: connectiontypes.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: ConnectionType
+    listKind: ConnectionTypeList
+    plural: connectiontypes
+    singular: connectiontype
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ConnectionType defines the structure, validation and behavior
+          of a connection
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ConnectionTypeSpec defines the desired state of ConnectionType
+            properties:
+              allowExtraFields:
+                description: Allow extra fields to be submitted that do not match
+                  any CredentialField
+                type: boolean
+              fields:
+                description: CredentialFields used in this ConnectionTypeSpec. Used
+                  to validate input.
+                items:
+                  properties:
+                    envName:
+                      description: EnvKey is what the environment variable for this
+                        field will be called
+                      type: string
+                    name:
+                      description: Name for this CredentialField. Used as keys in
+                        the Credentials-map
+                      type: string
+                    required:
+                      description: Whether or not this field must be filled
+                      type: boolean
+                    sensitive:
+                      description: Whether or not this field is sensitive. If a field
+                        is sensitive, the only valid ValueSource is a SecretKeyRef.
+                        Plain text values and ConfigMapKeyRefs are not allowed.
+                      type: boolean
+                    validation:
+                      description: Optional methods of validating the field's value
+                      properties:
+                        maxLength:
+                          format: int32
+                          type: integer
+                        minLength:
+                          format: int32
+                          type: integer
+                        regex:
+                          description: A regex pattern, must conform to RE2 syntax
+                          type: string
+                      type: object
+                  required:
+                  - envName
+                  - name
+                  - required
+                  type: object
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: datasets.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: DataSet
+    listKind: DataSetList
+    plural: datasets
+    singular: dataset
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: DataSet is the Schema for the datasets API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DataSetSpec defines the desired state of DataSet
+            properties:
+              connection:
+                description: Connection defines the connection to use to retrieve
+                  this dataset
+                properties:
+                  connectionFrom:
+                    properties:
+                      name:
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          TODO: Add other useful fields. apiVersion, kind, uid?'
+                        type: string
+                      optional:
+                        description: Specify whether the Connection must be defined
+                          or not.
+                        type: boolean
+                    type: object
+                type: object
+              healthCheck:
+                description: HealthCheck can be configured to perform a periodic health
+                  check on the data. E.g. this can be used to monitor the DataSet
+                  quality or the availability. HealthCheck is a WorkflowReference
+                  and the DataSet reconciler will use the latest workflow run as an
+                  indication of DataSet health. This allows users to define a workflow
+                  that performs e.g. a Data Quality check and fail the workflow when
+                  the Data Quality is below a user defined threshold.
+                properties:
+                  name:
+                    description: '`name` is the name of the workflow. Required'
+                    type: string
+                  namespace:
+                    description: '`namespace` is the namespace of the workflow. Required'
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
+              metadata:
+                additionalProperties:
+                  description: Value contains either a direct value or a value from
+                    a source
+                  properties:
+                    value:
+                      type: string
+                    valueFrom:
+                      description: Source for the value. Cannot be used if Value is
+                        already defined
+                      properties:
+                        configMapKeyRef:
+                          description: Selects a key of a ConfigMap.
+                          properties:
+                            key:
+                              description: The key to select.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                        secretKeyRef:
+                          description: Selects a key of a secret in the pod's namespace
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                      type: object
+                  type: object
+                description: Metadata contains any additional information that would
+                  be required to fetch the DataSet from the connection, such as a
+                  file name or a table name.
+                type: object
+              storageType:
+                description: StorageType defines whether the DataSet is persisted
+                  or ephemeral
+                enum:
+                - Persistent
+                - Ephemeral
+                type: string
+              type:
+                description: Type defines the type of the DataSet (e.g. MySQL table)
+                type: string
+            required:
+            - storageType
+            - type
+            type: object
+          status:
+            description: DataSetStatus defines the observed state of DataSet
+            properties:
+              healthy:
+                description: Healthy indicates the status of the recent DataSet health
+                  check.
+                enum:
+                - Healthy
+                - Unhealthy
+                - Unknown
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: datasettypes.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: DataSetType
+    listKind: DataSetTypeList
+    plural: datasettypes
+    singular: datasettype
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: DataSetType defines the structure of a DataSet
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              metadata:
+                description: MetadataFields defines the structure of the metadata
+                  for the DataSet
+                properties:
+                  allowExtraFields:
+                    description: Allow extra fields to be submitted that do not match
+                      any CredentialField
+                    type: boolean
+                  fields:
+                    description: List of fields specified for validation.
+                    items:
+                      properties:
+                        envName:
+                          description: EnvKey is what the environment variable for
+                            this field will be called
+                          type: string
+                        name:
+                          description: Name for this CredentialField. Used as keys
+                            in the Credentials-map
+                          type: string
+                        required:
+                          description: Whether or not this field must be filled
+                          type: boolean
+                        sensitive:
+                          description: Whether or not this field is sensitive. If
+                            a field is sensitive, the only valid ValueSource is a
+                            SecretKeyRef. Plain text values and ConfigMapKeyRefs are
+                            not allowed.
+                          type: boolean
+                        validation:
+                          description: Optional methods of validating the field's
+                            value
+                          properties:
+                            maxLength:
+                              format: int32
+                              type: integer
+                            minLength:
+                              format: int32
+                              type: integer
+                            regex:
+                              description: A regex pattern, must conform to RE2 syntax
+                              type: string
+                          type: object
+                      required:
+                      - envName
+                      - name
+                      - required
+                      type: object
+                    type: array
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.5.0
+  creationTimestamp: null
+  name: workflows.etl.dataworkz.nl
+spec:
+  group: etl.dataworkz.nl
+  names:
+    kind: Workflow
+    listKind: WorkflowList
+    plural: workflows
+    singular: workflow
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Workflow is the schema for the workflows API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kubeetl-leader-election-role
+  namespace: kubeetl
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: kubeetl-manager-role
+rules:
+- apiGroups:
+  - etl.dataworkz.nl
+  resources:
+  - datasets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl
+  resources:
+  - datasets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - etl.dataworkz.nl
+  resources:
+  - workflows
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - workflows
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - workflows/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubeetl-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: kubeetl-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubeetl-leader-election-rolebinding
+  namespace: kubeetl
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubeetl-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kubeetl
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubeetl-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeetl-manager-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kubeetl
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubeetl-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeetl-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kubeetl
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: kubeetl-controller-manager-metrics-service
+  namespace: kubeetl
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: https
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: kubeetl-controller-manager
+  namespace: kubeetl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - command:
+        - /manager
+        image: dataworkz/kubeetl
+        name: manager
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      terminationGracePeriodSeconds: 10
+---

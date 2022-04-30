@@ -25,7 +25,7 @@ spec:
       containers:
       - command:
         - /manager
-        image: blokje5/kubeetl
+        image: dataworkz/kubeetl
         name: manager
         resources:
           limits:
