@@ -1,0 +1,25 @@
+apiVersion: etl.dataworkz.nl/v1alpha1
+kind: Workflow
+metadata:
+  name: basic-workflow
+spec:
+  injectInto:
+    - name: bash-template
+      injectedValues:
+        - injectable-connection
+  injectable:
+    - name: injectable-connection
+      datasetRef:
+        name: sessions-dataset
+      content: mysql://{{connection.user}}:{{connection.password}}@{{metadata.host}}:{{metadata.port}}/{{metadata.database}}
+      envName: MYSQL_URL
+  entrypoint: bash-template
+  templates:
+  - name: bash-template
+    inputs:
+      parameters:
+      - name: args
+    container:
+      image: busybox:latest
+      command: [sh, -c]
+      args: ["echo", "$MYSQL_URL"]

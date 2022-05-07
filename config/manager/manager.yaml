@@ -25,8 +25,10 @@ spec:
       containers:
       - command:
         - /manager
-        image: dataworkz/kubeetl
+        image: ghcr.io/dataworkz-nl:main
+        imagePullPolicy: IfNotPresent
         name: manager
+        args: ["manager"]
         resources:
           limits:
             cpu: 100m

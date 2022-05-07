@@ -1,0 +1,14 @@
+apiVersion: etl.dataworkz.nl/v1alpha1
+kind: Connection
+metadata:
+  name: mysql-connection
+spec:
+  type: mysql
+  credentials:
+    username:
+      value: some-username
+    password:
+      valueFrom:
+        secretKeyRef:
+          name: db-secret
+          key: password
