@@ -67,7 +67,9 @@ func (c *managerConfig) run() {
 			etlhooks.SetupValidatingDataSetWebhookWithManager,
 		),
 		manager.WithReconcilers(
-			(&controllers.DataSetReconciler{}).SetupWithManager,
+			(&controllers.DataSetReconciler{
+				Log: ctrl.Log.WithName("controllers").WithName("DataSet"),
+			}).SetupWithManager,
 			(&controllers.WorkflowReconciler{
 				Log:                      ctrl.Log.WithName("controllers").WithName("Workflow"),
 				ConnectionInjectionImage: DockerImage,
