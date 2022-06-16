@@ -24,7 +24,6 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,33 +58,18 @@ func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	cs := v1alpha1.ConnectionSecret(workflow.Name, workflow.Namespace)
-	log.Info("creating connection secret", "name", cs.Name, "namespace", cs.Namespace)
-
-	_, err := ctrl.CreateOrUpdate(ctx, r.Client, &cs, func() error { return r.updateSecret(&workflow, &cs) })
-	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("error creating workflow connection secret: %w", err)
-	}
-
 	awf := wfv1.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: workflow.Namespace,
 			Name:      workflow.Name,
 		},
 	}
-	_, err = ctrl.CreateOrUpdate(ctx, r.Client, &awf, func() error { return r.updateWorkflow(&workflow, &awf) })
+	_, err := ctrl.CreateOrUpdate(ctx, r.Client, &awf, func() error { return r.updateWorkflow(&workflow, &awf) })
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("error upserting argo workflow: %w", err)
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func (r *WorkflowReconciler) updateSecret(workflow *v1alpha1.Workflow, secret *corev1.Secret) error {
-	if err := ctrl.SetControllerReference(workflow, secret, r.Scheme); err != nil {
-		return fmt.Errorf("error setting owner reference on connection secret: %w", err)
-	}
-	return nil
 }
 
 func (r *WorkflowReconciler) updateWorkflow(workflow *v1alpha1.Workflow, awf *wfv1.Workflow) error {

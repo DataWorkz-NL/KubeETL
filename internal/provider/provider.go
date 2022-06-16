@@ -8,8 +8,10 @@ import (
 	"github.com/dataworkz/kubeetl/listers"
 	"github.com/dataworkz/kubeetl/pkg/util"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type SecretProvider interface {
@@ -39,12 +41,16 @@ func (cp *secretProvider) ProvideWorkflowSecret(workflowName, workflowNamespace 
 		return fmt.Errorf("failed to find workflow with name %s: %w", workflowName, err)
 	}
 
-	secret := corev1.Secret{}
-	m := v1alpha1.ConnectionSecret(wf.Namespace, wf.Name).ObjectMeta
-	if err := cp.client.Get(ctx, types.NamespacedName{Name: m.Name, Namespace: m.Namespace}, &secret); err != nil {
-		return fmt.Errorf("failed to find connection secret with name %s: %w", m.Name, err)
+	secret := v1alpha1.ConnectionSecret(wf.Namespace, wf.Name)
+	ownerRef := metav1.OwnerReference{
+		APIVersion: wf.APIVersion,
+		Kind:       wf.Kind,
+		UID:        wf.GetUID(),
+		Name:       wf.GetName(),
 	}
+	secret.OwnerReferences = append(secret.OwnerReferences, ownerRef)
 
+	log.Infof("creating connection secret %s/%s", secret.Namespace, secret.Name)
 	if err := cp.populateSecret(ctx, &secret, wf); err != nil {
 		return fmt.Errorf("failed to populate connection secret: %w", err)
 	}
@@ -66,12 +72,14 @@ func (cp *secretProvider) populateSecret(ctx context.Context, secret *corev1.Sec
 			if err != nil {
 				return err
 			}
+
 			secret.StringData[iv.Name] = content
 		} else if iv.DataSetRef.Name != "" {
 			content, err := cp.renderDataSetValue(ctx, secret, wf, iv)
 			if err != nil {
 				return err
 			}
+
 			secret.StringData[iv.Name] = content
 		}
 	}
