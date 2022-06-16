@@ -64,18 +64,18 @@ func (cp *secretProvider) ProvideWorkflowSecret(workflowName, workflowNamespace 
 
 // populateSecret renders the template for each InjectableValue in a Workflow and adds the result to the provided secret
 // using the name of the InjectableValue as a key
-func (cp *secretProvider) populateSecret(ctx context.Context, secret *corev1.Secret, wf *v1alpha1.Workflow) error {
+func (sp *secretProvider) populateSecret(ctx context.Context, secret *corev1.Secret, wf *v1alpha1.Workflow) error {
 	secret.StringData = make(map[string]string)
 	for _, iv := range wf.Spec.InjectableValues {
 		if iv.ConnectionRef.Name != "" {
-			content, err := cp.renderConnectionValue(ctx, secret, wf, iv)
+			content, err := sp.renderConnectionValue(ctx, secret, wf, iv)
 			if err != nil {
 				return err
 			}
 
 			secret.StringData[iv.Name] = content
 		} else if iv.DataSetRef.Name != "" {
-			content, err := cp.renderDataSetValue(ctx, secret, wf, iv)
+			content, err := sp.renderDataSetValue(ctx, secret, wf, iv)
 			if err != nil {
 				return err
 			}
@@ -87,13 +87,13 @@ func (cp *secretProvider) populateSecret(ctx context.Context, secret *corev1.Sec
 	return nil
 }
 
-func (cp *secretProvider) renderConnectionValue(ctx context.Context, secret *corev1.Secret, wf *v1alpha1.Workflow, iv v1alpha1.InjectableValue) (string, error) {
-	conn, err := cp.connectionLister.Find(ctx, wf.Namespace, iv.ConnectionRef.Name)
+func (sp *secretProvider) renderConnectionValue(ctx context.Context, secret *corev1.Secret, wf *v1alpha1.Workflow, iv v1alpha1.InjectableValue) (string, error) {
+	conn, err := sp.connectionLister.Find(ctx, wf.Namespace, iv.ConnectionRef.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to find Connection %s: %w", iv.ConnectionRef.Name, err)
 	}
 
-	credValues, err := cp.createCredentialsMap(ctx, conn, iv)
+	credValues, err := sp.createCredentialsMap(ctx, conn, iv)
 	if err != nil {
 		return "", err
 	}
@@ -106,11 +106,11 @@ func (cp *secretProvider) renderConnectionValue(ctx context.Context, secret *cor
 	return content, nil
 }
 
-func (cp *secretProvider) createCredentialsMap(ctx context.Context, conn *v1alpha1.Connection, iv v1alpha1.InjectableValue) (map[string]string, error) {
+func (sp *secretProvider) createCredentialsMap(ctx context.Context, conn *v1alpha1.Connection, iv v1alpha1.InjectableValue) (map[string]string, error) {
 	credValues := make(map[string]string, len(conn.Spec.Credentials))
 
 	for name := range conn.Spec.Credentials {
-		credReader := util.NewCredentialReader(cp.client, conn)
+		credReader := util.NewCredentialReader(sp.client, conn)
 		data, err := credReader.ReadValue(ctx, name)
 		if err != nil {
 			return credValues, fmt.Errorf("failed to read credential value %s in Connection %s: %w", name, iv.ConnectionRef.Name, err)
@@ -122,8 +122,8 @@ func (cp *secretProvider) createCredentialsMap(ctx context.Context, conn *v1alph
 	return credValues, nil
 }
 
-func (cp *secretProvider) renderDataSetValue(ctx context.Context, secret *corev1.Secret, wf *v1alpha1.Workflow, iv v1alpha1.InjectableValue) (string, error) {
-	ds, err := cp.datasetLister.Find(ctx, wf.Namespace, iv.DataSetRef.Name)
+func (sp *secretProvider) renderDataSetValue(ctx context.Context, secret *corev1.Secret, wf *v1alpha1.Workflow, iv v1alpha1.InjectableValue) (string, error) {
+	ds, err := sp.datasetLister.Find(ctx, wf.Namespace, iv.DataSetRef.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to find DataSet %s: %w", iv.DataSetRef.Name, err)
 	}
@@ -131,7 +131,7 @@ func (cp *secretProvider) renderDataSetValue(ctx context.Context, secret *corev1
 	credValues := make(map[string]string, len(ds.Spec.Metadata))
 
 	for name := range ds.Spec.Metadata {
-		credReader := util.NewDataSetCredentialReader(cp.client, ds)
+		credReader := util.NewDataSetCredentialReader(sp.client, ds)
 		data, err := credReader.ReadValue(ctx, name)
 		if err != nil {
 			return "", fmt.Errorf("failed to read credential value %s in Connection %s: %w", name, iv.ConnectionRef.Name, err)
@@ -144,12 +144,12 @@ func (cp *secretProvider) renderDataSetValue(ctx context.Context, secret *corev1
 	injectedValues["metadata"] = credValues
 
 	if ds.Spec.Connection.ConnectionFrom != nil {
-		conn, err := cp.connectionLister.Find(ctx, wf.Namespace, iv.ConnectionRef.Name)
+		conn, err := sp.connectionLister.Find(ctx, wf.Namespace, iv.ConnectionRef.Name)
 		if err != nil {
 			return "", fmt.Errorf("failed to find Connection for DataSet %s: %w", ds.Spec.Connection.ConnectionFrom.Name, err)
 		}
 
-		connValues, err := cp.createCredentialsMap(ctx, conn, iv)
+		connValues, err := sp.createCredentialsMap(ctx, conn, iv)
 		if err != nil {
 			return "", err
 		}
