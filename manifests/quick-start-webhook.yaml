@@ -1115,6 +1115,26 @@ rules:
 - apiGroups:
   - etl.dataworkz.nl.dataworkz.nl
   resources:
+  - cronworkflows
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - cronworkflows/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
   - workflows
   verbs:
   - create
@@ -1128,6 +1148,26 @@ rules:
   - etl.dataworkz.nl.dataworkz.nl
   resources:
   - workflows/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - workflowtemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etl.dataworkz.nl.dataworkz.nl
+  resources:
+  - workflowtemplates/status
   verbs:
   - get
   - patch
@@ -1246,9 +1286,12 @@ spec:
         control-plane: controller-manager
     spec:
       containers:
-      - command:
+      - args:
+        - manager
+        command:
         - /manager
-        image: dataworkz/kubeetl
+        image: ghcr.io/dataworkz-nl:main
+        imagePullPolicy: IfNotPresent
         name: manager
         ports:
         - containerPort: 9443
