@@ -46,6 +46,7 @@ type WorkflowReconciler struct {
 
 // +kubebuilder:rbac:groups=etl.dataworkz.nl.dataworkz.nl,resources=workflows,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=etl.dataworkz.nl.dataworkz.nl,resources=workflows/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=argoproj.io,resources=workflows,verbs=get;list;watch;create;update;patch;delete
 
 func (r *WorkflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("workflow", req.NamespacedName)
