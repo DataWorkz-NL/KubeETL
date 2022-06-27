@@ -11,7 +11,7 @@ import (
 
 // createArgoWorkflowSpec creates an Argo Workflow spec based on the supplied v1alpha1.WorkflowSpec
 func createArgoWorkflowSpec(wfs v1alpha1.WorkflowSpec, wfName, connectionInjectionImage, namespace string) (wfv1.WorkflowSpec, error) {
-	spec := wfs.ArgoWorkflowSpec
+	spec := wfs.WorkflowSpec
 	v := corev1.Volume{
 		Name: v1alpha1.NameWithHash(wfName),
 		VolumeSource: corev1.VolumeSource{
@@ -83,9 +83,9 @@ func createArgoWorkflowSpec(wfs v1alpha1.WorkflowSpec, wfName, connectionInjecti
 }
 
 func getTemplateByName(spec *wfv1.WorkflowSpec, name string) *wfv1.Template {
-	for _, t := range spec.Templates {
+	for i, t := range spec.Templates {
 		if t.Name == name {
-			return &t
+			return &spec.Templates[i]
 		}
 	}
 	return nil

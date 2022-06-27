@@ -46,7 +46,8 @@ type WorkflowStatus struct {
 type WorkflowSpec struct {
 	// ArgoWorkflowSpec is an embedded WorkflowSpec from Argo Workflows
 	// +required
-	ArgoWorkflowSpec wfv1.WorkflowSpec `json:",inline"`
+	wfv1.WorkflowSpec `json:",inline"`
+	// ArgoWorkflowSpec wfv1.WorkflowSpec `json:",inline"`
 
 	// InjectableValues defines a collection of InjectableValues for this Workflow
 	// +optional

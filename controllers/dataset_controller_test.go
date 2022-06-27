@@ -75,7 +75,7 @@ var _ = Describe("DataSetReconciler", func() {
 			}
 
 			wfSpec := api.WorkflowSpec{
-				ArgoWorkflowSpec: wfv1.WorkflowSpec{},
+				WorkflowSpec: wfv1.WorkflowSpec{},
 			}
 
 			wf := api.Workflow{
