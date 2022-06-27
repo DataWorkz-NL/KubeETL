@@ -19,6 +19,7 @@ spec:
     inputs:
       parameters:
       - name: args
+        default: ""
     container:
       image: busybox:latest
       command: [sh, -c]
