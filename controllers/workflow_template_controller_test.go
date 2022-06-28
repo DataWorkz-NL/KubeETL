@@ -63,7 +63,7 @@ var _ = Describe("WorkflowTemplateReconciler", func() {
 						MountPath:     mountPath,
 					},
 				},
-				ArgoWorkflowSpec: wfv1.WorkflowSpec{
+				WorkflowSpec: wfv1.WorkflowSpec{
 					Templates: []wfv1.Template{
 						wfv1.Template{
 							Name:      "containertemplate",
@@ -151,7 +151,7 @@ var _ = Describe("WorkflowTemplateReconciler", func() {
 						EnvName:       "HOST",
 					},
 				},
-				ArgoWorkflowSpec: wfv1.WorkflowSpec{
+				WorkflowSpec: wfv1.WorkflowSpec{
 					Templates: []wfv1.Template{
 						wfv1.Template{
 							Name:      "foo",
@@ -228,7 +228,7 @@ var _ = Describe("WorkflowTemplateReconciler", func() {
 						EnvName:       "HOST",
 					},
 				},
-				ArgoWorkflowSpec: wfv1.WorkflowSpec{},
+				WorkflowSpec: wfv1.WorkflowSpec{},
 			}
 			created := api.WorkflowTemplate{
 				ObjectMeta: metav1.ObjectMeta{
@@ -275,7 +275,7 @@ var _ = Describe("WorkflowTemplateReconciler", func() {
 						EnvName:       "HOST",
 					},
 				},
-				ArgoWorkflowSpec: wfv1.WorkflowSpec{},
+				WorkflowSpec: wfv1.WorkflowSpec{},
 			}
 			created := api.WorkflowTemplate{
 				ObjectMeta: metav1.ObjectMeta{

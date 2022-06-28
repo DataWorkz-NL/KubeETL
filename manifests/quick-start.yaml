@@ -1065,6 +1065,18 @@ metadata:
   name: kubeetl-manager-role
 rules:
 - apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - etl.dataworkz.nl
   resources:
   - datasets
@@ -1261,7 +1273,7 @@ spec:
       - args:
         - manager
         command:
-        - /manager
+        - /kubeetl
         image: ghcr.io/dataworkz-nl:main
         imagePullPolicy: IfNotPresent
         name: manager

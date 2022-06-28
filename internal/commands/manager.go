@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	argoScheme "github.com/argoproj/argo/v2/pkg/client/clientset/versioned/scheme"
 	etldataworkznlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	etlv1alpha1 "github.com/dataworkz/kubeetl/api/v1alpha1"
 	etlhooks "github.com/dataworkz/kubeetl/api/v1alpha1/webhooks"
@@ -13,6 +14,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
 	// +kubebuilder:scaffold:imports
 
 	"github.com/dataworkz/kubeetl/pkg/manager"
@@ -61,6 +63,7 @@ func (c *managerConfig) run() {
 			clientgoscheme.AddToScheme,
 			etlv1alpha1.AddToScheme,
 			etldataworkznlv1alpha1.AddToScheme,
+			argoScheme.AddToScheme,
 		),
 		manager.WithWebhooks(
 			etlhooks.SetupValidatingConnectionWebhookWithManager,

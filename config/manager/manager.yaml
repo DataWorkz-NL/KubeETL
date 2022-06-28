@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - command:
-        - /manager
+        - /kubeetl
         image: ghcr.io/dataworkz-nl:main
         imagePullPolicy: IfNotPresent
         name: manager
