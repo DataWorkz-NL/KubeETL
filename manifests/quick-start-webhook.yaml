@@ -1301,7 +1301,7 @@ spec:
       - args:
         - manager
         command:
-        - /manager
+        - /kubeetl
         image: ghcr.io/dataworkz-nl:main
         imagePullPolicy: IfNotPresent
         name: manager

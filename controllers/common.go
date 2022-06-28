@@ -27,8 +27,10 @@ func createArgoWorkflowSpec(wfs v1alpha1.WorkflowSpec, wfName, connectionInjecti
 		Daemon:             pointer.BoolPtr(true),
 		ServiceAccountName: wfs.InjectionServiceAccount,
 		Container: &corev1.Container{
-			Image: connectionInjectionImage,
+			Image:   connectionInjectionImage,
+			Command: []string{"kubeetl"},
 			Args: []string{
+				"connectionprovider",
 				"--workflow",
 				wfName,
 				"--namespace",
